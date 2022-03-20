@@ -1,38 +1,30 @@
 # Avaliação de conhecimentos em Desenvolvimento de Software
 
-## Considere a seguinte necessidade:
- 
-Precisamos enviar uma senha de maneira segura para um cliente. Para isso, ao invés de encaminhá-la via E-mail, SMS, Slack, etc, foi dado como solução o desenvolvimento de um sistema com as seguintes funções:
- 
-1- Sistema gera <strong>senha aleatória</strong> baseada em <strong>políticas de complexidade</strong> (tipo de caracteres, números, letras, tamanho, etc); 
-- **Exemplo**: o usuário ao clicar no botão "Gerar Senha" irá obter uma senha aleatória;
+## Arquitetura
+![Arquitetura](arquitetura.png)
 
-2- Usuário irá especificar <strong>quantas vezes</strong> a senha gerada poderá ser vista e <strong>qual o tempo</strong> que a senha ficará válida;
-- **Exemplo**: o usuário irá especificar que a senha possa ser vista apenas <em>duas vezes</em> pelo prazo de <em>um dia</em>;
+- Conexões de rede protegidas via SSL/TLS.
+- Criptografa a senha utilizando chave RSA pública para salvar de forma segura no banco de dados.
+- o TTL fornecido pelo cliente, é usado para expirar o registro no banco sem exigir responsabilidade da aplicação.
+- Utiliza uuid como parâmetro de URL afim de evitar força bruta para adivinhar outras senhas.
+- O valor máximo de visualizações, será salvo no value do registro no Dynamo, junto com a senha criptografada e a cada visualização, o valor será decrementado.
+- A senha será gerada no backend, devido a ser um contexto de memória controlado, evitando que ações maliciosas por terceiros interfiram no computador do usuário.
+- Arquivo de configuração yml, terá informações como políticas de complexidades e diretório contendo as chaves RSA.
 
-3- O sistema irá <strong>gerar uma URL</strong> que dá acesso a visualização da senha, baseando-se nos critérios do item 02;
-- **Exemplo**: o usuário enviará a URL para que o cliente possa visualizar a senha;
+## ToDo
 
-4- Após atingir a quantidade de visualizações ou o tempo disponível, o sistema <strong>bloqueia/elimina</strong> a visualização da senha (expirado).
-A senha <strong>não deve ser armazenada</strong> após sua expiração
+- Avaliar a melhor maneira de salvar os views.
 
-## Design
+## Explanação
 
-1 - <strong>Monte um desenho</strong> com a arquitetura desse sistema, considerando todos os <strong>componentes e tecnologias</strong> necessárias para o seu correto funcionamento. Considere essa topologia utilizando, obrigatoriamente, provedores de nuvens públicas trabalhando com o <strong>conceito de serverless</strong>. Escolha a nuvem que tiver mais conforto em trabalhar (AWS, GCP, Azure, etc)
- 
-2 - Avalie quais <strong>controles de segurança</strong> são pertinentes para esse sistema, com o objetivo de protegê-lo ao máximo, evitando vazamento de dados (ex: considere o <strong>OWASP Top10</strong>). Questões de auditoria e logging são importantes também. 
- 
-3 - Explique como atender cada uma das 4 funções elencadas acima (requisítos) e o racional de sua decisão. Ex: A senha aleatória será gerada no front-end por xyz, ou será gerada com uma função no backend por abc.
+Ao receber uma requisição no /, o Amplify enviará o frontend que por sua vez, terá os controles necessários, como número máximo de visualizações (views) e o tempo máximo de vida (TTL).
 
-4 - Sinta-se livre para adicionar seus comentários de novas melhorias que você julgar desejável. A TOTVS estimula a criatividade e a liberdade de expressão!
- 
-Faça uma sucinta explicação sobre o racional do seu desenho.
+Ao submeter esse formulário, um POST será enviado para o Gateway API que por sua vez, realizará uma chamada à Lamda Create, que será responsável por gerar uma senha randômica, um uuid, criptografar a senha, salvar os dados no Dynamo e retornar um json contendo o link e a senha para o usuário.
 
-Essa documentação pode ser entregue em um arquivo pdf ou como parte da documentação no repositório (Arquivos MarkDown com topologia no Draw.io, etc)
+Ao abrir o link, um GET será enviado contendo na URL, um parâmetro com o UUID, o Gateway API após receber essa requisição, passará para a Lambda Read, que por sua vez, irá recuperar o registro com o UUID vindo pela URL, checará se a quantidade de views está zerando e se necessário, removerá e retornará 404. Se a view não estiver zerando, o mesmo será decrementado, a senha será descriptografada com a chave privada e será retornada na requisição para que o Frontend renderize-a.
 
-## Implementação
 
-Faça um Fork desse repositório, Crie uma branch com seu nome (ex: application/jose_silas_santos_pereira). 
-Envie um PR nesse repositorio do GitHub contendo as implementações do projeto com base na arquitetura descrita que você desenvolveu de <strong>pelo menos um dos componentes</strong> do sistema (Queremos avaliar sua lógica de programação e estruturação do código. Não é necessário desenvolver todos os componentes). 
 
-Para testar as implementações de seu projeto antes de enviar, recomendamos o uso do free tier das nuvens públicas ou projetos que emulem localmente tais nuvens como o localstack (https://github.com/localstack/localstack).
+
+
+
