@@ -1,0 +1,103 @@
+html {
+    height: -webkit-fill-available;
+    color: #323232;
+}
+
+body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+}
+
+main {
+    min-height: calc(100vh - 138px);
+    height: -webkit-fill-available;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+footer {
+    width: 100%;
+    position: relative;
+    background-color: #f4f4f4;
+}
+
+.bg-cyan {
+    background-color: #319bad;
+}
+
+#brand {
+    height: 30px;
+}
+
+/* BOX START */
+
+.box {
+    margin: 25px 10px 25px 10px;
+    background-color: #fbfbfb;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.box-primary {
+    border-top: 3px solid #319bad;
+}
+
+.box-header {
+    box-shadow: border-box;
+}
+
+.box-title {
+    text-align: left;
+    margin:10px;
+}
+
+.box-body {
+    display: block;
+    padding: 20px 10px 20px 10px;
+    border-top: 1px solid #eee;
+    text-align: left;
+}
+
+.box-footer {
+    padding: 15px;
+    border-radius: 0 0 4px 4px;
+    border-top: 1px solid #eee;
+    font-family: Ubuntu;
+    font-size: 13px;
+    text-align: left;
+}
+
+/* BOX END */
+
+/* START BUTTON */
+
+.btn-personalized {
+    font-size: 15px;
+    text-decoration: none;
+    padding: 10px 20px 10px 20px;
+    border-radius: 6px;
+    color: azure;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.btn-cyan {
+    border: 1px solid #184b53;
+    background-color: #319bad;
+}
+
+.btn-cyan:hover {
+    border: 1px solid #184b53;
+    background-color: #2a7e8d;
+}
+
+.btn-red {
+    border: 1px solid #200000;
+    background-color: #8b0000;
+}
+
+#passowrd-update-button {
+    cursor: pointer;
+}
+
+/* END BUTTON */
