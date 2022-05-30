@@ -30,25 +30,27 @@ class PasswodRepository:
         :param random_string: Recebe uma string randômica.
         :return: Boolean
         """
-        has_minimun = len(random_string) >= 8
-        has_maximun = len(random_string) <= 50
         has_lower = re.findall('[a-z]', random_string)
         has_upper = re.findall('[A-Z]', random_string)
         has_number = re.findall('[0-9]', random_string)
         has_special_characteres = re.findall('[!-/:-?]', random_string)
 
-        if has_lower and has_upper and has_number and has_special_characteres and has_minimun and has_maximun:
+        if has_lower and has_upper and has_number and has_special_characteres:
             return True
         else:
             return False
 
     def generate_password(self):
         """
-        Repete o teste ate obter uma string que corresponda a uma senha segura.
+        Verifica se a string tem o número mínimo caracteres entre 8 e 50. Se possuir, repete ate obter uma string que
+        corresponda a uma senha segura. Se não possuir retorna 'None'.
 
-        :return: String de uma senha segura validada.
+        :return: String de uma senha segura validada ou None
         """
-        while True:
-            random_string = self.generate_random_string()
-            if self.password_is_valid(random_string):
-                return random_string
+        if 8 <= self.size <= 50:
+            while True:
+                random_string = self.generate_random_string()
+                if self.password_is_valid(random_string):
+                    return random_string
+        else:
+            return None

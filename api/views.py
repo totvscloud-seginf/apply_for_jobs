@@ -27,4 +27,9 @@ class PasswordDetails(APIView):
             views=None
         )
         serializer = password_serializer.PasswordSerializer(password)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        if password.value:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+
