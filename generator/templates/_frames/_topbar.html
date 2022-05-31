@@ -1,0 +1,43 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-cyan">
+    <div class="container-fluid">
+        <!-- Brand -->
+        <a class="navbar-brand" href="http://www.totvs.com"><img src="{% static 'img/logo.png' %}" alt="Logotipo TOTVS" id="brand"></a>
+
+        <!-- Brand End -->
+
+        <!-- Toggle Button -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Toggle Button End -->
+
+        <!-- Menu -->
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                {% if request.user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'create_password' %}">Gerador de Senhas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="{% url 'get_passwords' %}">Listar de Senhas criadas</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        {% if request.user.is_authenticated %}
+<!--        <a class="fs-6 nav-link active link-light" aria-current="page" href="{% url 'logout_user' %}">{{ request.user.username }} - Logout</a>-->
+        <div class="dropdown nav-item">
+            <a class="dropdown-toggle fs-6 nav-link active link-light" id="profile-menu" data-bs-toggle="dropdown">
+                {{ request.user.username }}
+            </a>
+            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="profile-menu">
+                <a class="dropdown-item" aria-current="page" href="{% url 'logout_user' %}">Logout</a>
+            </div>
+        </div>
+        {% else %}
+        <a class="fs-5 nav-link active link-light" aria-current="page" href="{% url 'login_user' %}">Login</a>
+        {% endif %}
+        <!-- Menu End -->
+    </div>
+</nav>
