@@ -1,38 +1,16 @@
 # Avaliação de conhecimentos em Desenvolvimento de Software
 
-## Considere a seguinte necessidade:
- 
-Precisamos enviar uma senha de maneira segura para um cliente. Para isso, ao invés de encaminhá-la via E-mail, SMS, Slack, etc, foi dado como solução o desenvolvimento de um sistema com as seguintes funções:
- 
-1- Sistema gera <strong>senha aleatória</strong> baseada em <strong>políticas de complexidade</strong> (tipo de caracteres, números, letras, tamanho, etc); 
-- **Exemplo**: o usuário ao clicar no botão "Gerar Senha" irá obter uma senha aleatória;
+## Descrição da atividade:
 
-2- Usuário irá especificar <strong>quantas vezes</strong> a senha gerada poderá ser vista e <strong>qual o tempo</strong> que a senha ficará válida;
-- **Exemplo**: o usuário irá especificar que a senha possa ser vista apenas <em>duas vezes</em> pelo prazo de <em>um dia</em>;
+Tecnologias utilizadas: React native, AWS(arquivo arquitetura.png): API Gateway, Lambda, IAM, DynamoDB.
 
-3- O sistema irá <strong>gerar uma URL</strong> que dá acesso a visualização da senha, baseando-se nos critérios do item 02;
-- **Exemplo**: o usuário enviará a URL para que o cliente possa visualizar a senha;
+Para a interface com usuário foi desenvolvido um frontend com react native contendo três campos: um para a quantidade de acessos no link que será gerado, outro para identificação do cliente e um para receber o link da senha.
 
-4- Após atingir a quantidade de visualizações ou o tempo disponível, o sistema <strong>bloqueia/elimina</strong> a visualização da senha (expirado).
-A senha <strong>não deve ser armazenada</strong> após sua expiração
+Ao clicar no botão "Gerar senha" no frontend é chamado uma rota no API Gateway que se comunica com uma função Lambda e cria uma nova senha salvando no DynamoDB. O Lambda retorna uma url que é uma outra rota para ser enviada ao cliente onde conseguirá ver sua senha.
+A rota enviada é um GET passando o id ( identificação do cliente mencionado acima) retornando sua senha e validando a quantidade de acessos que será feito através do link, basedo no parâmetro que foi passado (campo quantidade de acesso).
 
-## Design
 
-1 - <strong>Monte um desenho</strong> com a arquitetura desse sistema, considerando todos os <strong>componentes e tecnologias</strong> necessárias para o seu correto funcionamento. Considere essa topologia utilizando, obrigatoriamente, provedores de nuvens públicas trabalhando com o <strong>conceito de serverless</strong>. Escolha a nuvem que tiver mais conforto em trabalhar (AWS, GCP, Azure, etc)
- 
-2 - Avalie quais <strong>controles de segurança</strong> são pertinentes para esse sistema, com o objetivo de protegê-lo ao máximo, evitando vazamento de dados (ex: considere o <strong>OWASP Top10</strong>). Questões de auditoria e logging são importantes também. 
- 
-3 - Explique como atender cada uma das 4 funções elencadas acima (requisítos) e o racional de sua decisão. Ex: A senha aleatória será gerada no front-end por xyz, ou será gerada com uma função no backend por abc.
+## Melhorias
 
-4 - Sinta-se livre para adicionar seus comentários de novas melhorias que você julgar desejável. A TOTVS estimula a criatividade e a liberdade de expressão!
- 
-Faça uma sucinta explicação sobre o racional do seu desenho.
-
-Essa documentação pode ser entregue em um arquivo pdf ou como parte da documentação no repositório (Arquivos MarkDown com topologia no Draw.io, etc)
-
-## Implementação
-
-Faça um Fork desse repositório, Crie uma branch com seu nome (ex: application/jose_silas_santos_pereira). 
-Envie um PR nesse repositorio do GitHub contendo as implementações do projeto com base na arquitetura descrita que você desenvolveu de <strong>pelo menos um dos componentes</strong> do sistema (Queremos avaliar sua lógica de programação e estruturação do código. Não é necessário desenvolver todos os componentes). 
-
-Para testar as implementações de seu projeto antes de enviar, recomendamos o uso do free tier das nuvens públicas ou projetos que emulem localmente tais nuvens como o localstack (https://github.com/localstack/localstack).
+1 - Adicionar um campo de tempo para expiração da senha.
+2 - Gerar um link alternativo para o cliente para não haver altos custos de solicitações através da API.
