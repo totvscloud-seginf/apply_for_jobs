@@ -1,38 +1,79 @@
 # Avaliação de conhecimentos em Desenvolvimento de Software
 
-## Considere a seguinte necessidade:
- 
-Precisamos enviar uma senha de maneira segura para um cliente. Para isso, ao invés de encaminhá-la via E-mail, SMS, Slack, etc, foi dado como solução o desenvolvimento de um sistema com as seguintes funções:
- 
-1- Sistema gera <strong>senha aleatória</strong> baseada em <strong>políticas de complexidade</strong> (tipo de caracteres, números, letras, tamanho, etc); 
-- **Exemplo**: o usuário ao clicar no botão "Gerar Senha" irá obter uma senha aleatória;
+## **[Link do site](https://pw-sharer.herokuapp.com/)**
 
-2- Usuário irá especificar <strong>quantas vezes</strong> a senha gerada poderá ser vista e <strong>qual o tempo</strong> que a senha ficará válida;
-- **Exemplo**: o usuário irá especificar que a senha possa ser vista apenas <em>duas vezes</em> pelo prazo de <em>um dia</em>;
+_Dados de acesso serão enviados por e-mail._
 
-3- O sistema irá <strong>gerar uma URL</strong> que dá acesso a visualização da senha, baseando-se nos critérios do item 02;
-- **Exemplo**: o usuário enviará a URL para que o cliente possa visualizar a senha;
+## **[Relação de telas e níveis de acesso](https://www.figma.com/file/rxNalBQMyWsl9Fi8KpyeDb/Gerenciador-de-Senhas?node-id=0%3A1)**
 
-4- Após atingir a quantidade de visualizações ou o tempo disponível, o sistema <strong>bloqueia/elimina</strong> a visualização da senha (expirado).
-A senha <strong>não deve ser armazenada</strong> após sua expiração
+[![image](https://user-images.githubusercontent.com/38813574/170804071-d05cfebb-8a31-4f84-ab8d-e4606f958609.png)](https://www.figma.com/file/rxNalBQMyWsl9Fi8KpyeDb/Gerenciador-de-Senhas?node-id=0%3A1)
+
+---
 
 ## Design
 
-1 - <strong>Monte um desenho</strong> com a arquitetura desse sistema, considerando todos os <strong>componentes e tecnologias</strong> necessárias para o seu correto funcionamento. Considere essa topologia utilizando, obrigatoriamente, provedores de nuvens públicas trabalhando com o <strong>conceito de serverless</strong>. Escolha a nuvem que tiver mais conforto em trabalhar (AWS, GCP, Azure, etc)
- 
-2 - Avalie quais <strong>controles de segurança</strong> são pertinentes para esse sistema, com o objetivo de protegê-lo ao máximo, evitando vazamento de dados (ex: considere o <strong>OWASP Top10</strong>). Questões de auditoria e logging são importantes também. 
- 
-3 - Explique como atender cada uma das 4 funções elencadas acima (requisítos) e o racional de sua decisão. Ex: A senha aleatória será gerada no front-end por xyz, ou será gerada com uma função no backend por abc.
+### Backend
 
-4 - Sinta-se livre para adicionar seus comentários de novas melhorias que você julgar desejável. A TOTVS estimula a criatividade e a liberdade de expressão!
- 
-Faça uma sucinta explicação sobre o racional do seu desenho.
+- Django
 
-Essa documentação pode ser entregue em um arquivo pdf ou como parte da documentação no repositório (Arquivos MarkDown com topologia no Draw.io, etc)
+- PostgreSQL
 
-## Implementação
+As principais funções desenvolvidas no backend se encontram nos seguintes caminhos:
 
-Faça um Fork desse repositório, Crie uma branch com seu nome (ex: application/jose_silas_santos_pereira). 
-Envie um PR nesse repositorio do GitHub contendo as implementações do projeto com base na arquitetura descrita que você desenvolveu de <strong>pelo menos um dos componentes</strong> do sistema (Queremos avaliar sua lógica de programação e estruturação do código. Não é necessário desenvolver todos os componentes). 
+- apps/security_app/views.py
 
-Para testar as implementações de seu projeto antes de enviar, recomendamos o uso do free tier das nuvens públicas ou projetos que emulem localmente tais nuvens como o localstack (https://github.com/localstack/localstack).
+- apps/security_app/validation
+
+A criação dos modelos a serem importados para o banco de dados pode ser encontrada em:
+
+- apps/security_app/models.py
+
+### Frontend
+
+- Javascript
+
+- Bootstrap
+
+- Templates (montados no servidor e renderizados no frontend)
+
+As funções desenvolvidas para o frontend (especialmente a função de geração de senha) se encontram em:
+
+- pw_sharer/static/js/scripts.js
+
+Outros arquivos estáticos: pw_sharer/static
+
+Templates: pw_sharer/templates
+
+### Nuvem/Deploy
+
+- Heroku (deploy contínuo com github)
+
+---
+
+### Controles de segurança
+
+Para facilitar a visualização e os testes do funcionamento do projeto, foram implementadas algumas telas adicionais como:
+
+- Login;
+
+- Logged, que aparece quando um usuário não admnistrador faz login;
+
+- Dashboard, que contém todos os links gerados e seus respectivos status
+
+Também foi desenvolvida uma tela que mostra o link (display_link), de forma que o adminstrador consiga compartilhar a senha sem precisar entrar no link.
+
+Para esse desafio não foi desenvolvida uma tela de cadastramento de novos usuários, mas caso haja necessidade é possível criá-los através do [painel admin.](https://pw-sharer.herokuapp.com/admin)
+
+O framework Django possui várias funcionalidades nativas de segurança que foram utilizadas nesse projeto, tais como a parte de autenticação de usuários (que, entre outras coisas, evita SQL injection), CSRF token e hash de senhas.
+
+Uma das medidas de segurança adotadas foi definir quais visualizações eram restritas ao administrador,  quais eram acessíveis por usuários comuns e quais eram públicas. Para isso, os métodos de autenticação do Django e os atributos de usuário foram utilizados para validação de cada caso (veja detahes em apps/security_app/views.py).
+
+Por não ser possível recuperar as senhas diretamente do usuário (justamente por estarem encriptografadas), foi necessário armazenar a senha na base de dados dos links de compartilhamento (sharers) de forma porvisória. Em todas as views em que os shares sejam chamados, em especial no sharer em si, é feita uma validação sobre o seu status. Caso o sharer não esteja mais disponível (pelo limite de acessos ou pela data), a senha é apagada daquele sharer e seu status é atualizado, impedindo a visualização. Caso o administrador solicite um novo link, o código também será alterado e o link antigo não existirá mais.
+
+O link que permite o compartilhamento da senha é composto por uma cadeia de 16 números aleatórios. Como melhoria, seria possível adicionar ainda outros tipos de digitos para aumentar a segurança da URL, similar à lógica que foi utilizada na geração de senhas.
+
+A geração aleatória de senhas, por não utilizar informações sigilosas e por uma questão de agilidade na visualização, foi desenvolvida utilizando Javascript no frontend. São utilizados letras minúsculas, maiúsculas, números e caracteres especiais, com um comprimento padrão de 16 caracteres, embaralhados de forma aleatória, cuja regra é que haja pelo menos um caracter de cada tipo. É sorteado o comprimento de cada tipo de string, cuja soma com o comprimento de outras strings seja equivalente ao compimento definido como argumento da função. (veja detalhes em pw_sharer/static/js/scripts.js)
+
+Já a validação da senha criada ao gerar o link é realizada no backend, dentro de apps/security_app/validation/validation.py. Caso tentem fazer alguma requisição sem o uso da interface, essa medida evita que os dados errados cheguem no banco de dados. A senha deve ter pelo menos 8 digitos e pelo menos um caracter de cada tipo para ser aceita. Caso não haja algum desses requisitos, retorna uma mensagem de erro.
+
+Outra medida de segurança utilizada foi o uso de variáveis de ambiente do heroku para subir a aplicação em produção, relativamente aos dados de acesso ao banco de dados e ao servidor Django.

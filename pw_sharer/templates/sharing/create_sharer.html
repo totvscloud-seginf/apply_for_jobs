@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    
+    <div class="container pb-5">
+        <section>
+            <div class="form-box form-white m-auto">
+                
+                <form action="{% url 'create_sharer' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <h4>
+                            Crie e compartilhe uma nova senha para o usuário
+                        </h4>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="username">Usuário</label>
+                        <select class="form-control" name="username" id="username" required>
+                            {% for user in users %}
+                            <option title="{{user.username}}" value="{{user.username}}">{{user.username}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="password">Nova senha</label>
+                        <div class="field-sm-btn">
+                            <input class="form-control" type="text" id="password" name="password" required>
+                            <button class="btn btn-primary w-100" type="button" onclick="generateRandomPassword()" title="Gerar senha aleatória">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                    <!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                                    <path fill="#ffffff" d="M384 32H64C28.62 32 0 60.62 0 96v320c0 35.38 28.62 64 64 64h320c35.38 0 64-28.62 64-64V96C448 60.62 419.4 32 384 32zM128 192C110.4 192 96 177.6 96 160s14.38-32 32-32s32 14.38 32 32S145.6 192 128 192zM224 288C206.4 288 192 273.6 192 256s14.38-32 32-32s32 14.38 32 32S241.6 288 224 288zM320 384c-17.62 0-32-14.38-32-32s14.38-32 32-32s32 14.38 32 32S337.6 384 320 384z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="limit_visits">Limite de acessos</label>
+                        <input class="form-control" type="number" id="limit_visits" name="limit_visits" required value="7">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="limit_datetime">Data limite de acesso</label>
+                        <input class="form-control" type="date" id="limit_datetime" name="limit_datetime" required value="{{date}}">
+                    </div>
+                    {% include 'partials/_alerts.html' %}
+                    <div>
+                        <button class="btn btn-success w-100 btn-lg" type="submit">Gerar link de compartilhamento</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+
+{% endblock %}
