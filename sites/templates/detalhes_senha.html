@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+
+{% include "head.html" %} 
+
+{% include "header.html" %}
+<body>
+    <div class="container">
+        <section id="section-1">
+            <div class="center-sm" >
+                <h1>Detalhes da Senha</h1>
+                <h1>Senha: {{password}}</h1>
+                <h1>Data de Expiração: {{expiration_date}}</h1>
+                <h1>Quantidade maxima de visualizações:{{max_views}}</h1>
+                <h1>Quantidade de visualizações: {{views}}</h1>
+            </div>
+        </section>
+    </div>
+</body>
+
+</html>
