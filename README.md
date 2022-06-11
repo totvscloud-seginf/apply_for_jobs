@@ -1,5 +1,17 @@
 # Avaliação de conhecimentos em Desenvolvimento de Software
 
+## **Link: https://vast-taiga-84635.herokuapp.com/**
+
+## Design
+
+1 - A geração das senhas, utiliza letras minúsculas, maiúsculas, números e caracteres especiais, embaralhados de forma aleatória, com comprimento da senha passado pelo usuário.
+
+2 - O usuário informa a quantidade de visualizações maximas da senha, ele também deve determinar a quantidade de dias que a senha ficara acessivel. 
+
+3 - O sistema gera uma URL de acesso aberto com o ID da senha.
+ 
+4 - Após atingir a quantidade de visualizações ou o tempo disponível o valor da senha é apagado do banco de dados.
+
 ## Considere a seguinte necessidade:
  
 Precisamos enviar uma senha de maneira segura para um cliente. Para isso, ao invés de encaminhá-la via E-mail, SMS, Slack, etc, foi dado como solução o desenvolvimento de um sistema com as seguintes funções:
@@ -29,10 +41,3 @@ A senha <strong>não deve ser armazenada</strong> após sua expiração
 Faça uma sucinta explicação sobre o racional do seu desenho.
 
 Essa documentação pode ser entregue em um arquivo pdf ou como parte da documentação no repositório (Arquivos MarkDown com topologia no Draw.io, etc)
-
-## Implementação
-
-Faça um Fork desse repositório, Crie uma branch com seu nome (ex: application/jose_silas_santos_pereira). 
-Envie um PR nesse repositorio do GitHub contendo as implementações do projeto com base na arquitetura descrita que você desenvolveu de <strong>pelo menos um dos componentes</strong> do sistema (Queremos avaliar sua lógica de programação e estruturação do código. Não é necessário desenvolver todos os componentes). 
-
-Para testar as implementações de seu projeto antes de enviar, recomendamos o uso do free tier das nuvens públicas ou projetos que emulem localmente tais nuvens como o localstack (https://github.com/localstack/localstack).

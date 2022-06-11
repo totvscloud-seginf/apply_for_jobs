@@ -1,0 +1,6 @@
+{
+   "password":"bufm-355",
+   "expiration_date":"2022-06-07",
+   "max_views":8,
+   "views":0
+}

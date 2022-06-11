@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+{% include "head.html" %}
+
+<body>
+    <div class="col-md-4"></div>
+    <div class="container col-md-4">
+        <section>
+
+            <h2 class="text-center">Senha:</h2>
+            <p class="text-center font-weight-bold">{{password}}</p>
+
+            <h2 class="text-center">Data de expiração:</h2>
+            <p class="text-center">{{expiration_date}}</p>
+
+            <h2 class="text-center">Número máximo de visualizações:</h2>
+            <p class="text-center">{{max_views}}</p>
+
+            <h2 class="text-center">Visualizações realizadas:</h2>
+            <p class="text-center">{{views}}</p>
+
+            <h2 class="text-center">Link para visualização:</h2>
+            <p class="text-center" id="{{id}}">
+                {{url_senha}}
+            </p>
+        </section>
+        </div>
+</body>
+
+</html>

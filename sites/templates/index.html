@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+{% include "head.html" %} 
+<body>
+<!-- #container -->
+<div class="col-md-4"></div>
+<div class="container col-md-4">
+    <section id="section-1">
+        <div class="center-sm" >
+            <center><h1>Gerador de Senha</h1></center>
+            <form action="create" method="post">
+                {% csrf_token %}
+                <label for="qt_char">Quantidade de caracteres:</label>
+                <input type="number" class="form-control qt_char" value="8" min="8" max="50" id="qt_char" name="qt_char"><br><br>
+                <label for="qt_visu">Quantidade maxima de visualizações:</label>
+                <input type="number" class="form-control qt_visu" value="1" id="qt_visu" name="qt_visu"><br><br>
+                <label for="qt_dias">Quantidade de dias validos:</label>
+                <input type="number" class="form-control qt_dias" value="0" id="qt_dias" name="qt_dias"><br><br>
+                <input type="hidden" class="password" name="password"/>
+                <input type="submit" class="btn btn-primary" value="Gerar Senha">
+            </form>
+        </div>
+    </section>
+</div>
+<!-- #endcontainer -->
+</body>
+</html>
