@@ -1,22 +1,31 @@
 <!DOCTYPE html>
 {% load static %}
 <html>
+{% include "head.html" %}
 
-{% include "head.html" %} 
-
-{% include "header.html" %}
 <body>
-    <div class="container">
-        <section id="section-1">
-            <div class="center-sm" >
-                <h1>Detalhes da Senha</h1>
-                <h1>Senha: {{password}}</h1>
-                <h1>Data de Expiração: {{expiration_date}}</h1>
-                <h1>Quantidade maxima de visualizações:{{max_views}}</h1>
-                <h1>Quantidade de visualizações: {{views}}</h1>
-            </div>
+    <div class="col-md-4"></div>
+    <div class="container col-md-4">
+        <section>
+
+            <h2 class="text-center">Senha:</h2>
+            <p class="text-center font-weight-bold">{{password}}</p>
+
+            <h2 class="text-center">Data de expiração:</h2>
+            <p class="text-center">{{expiration_date}}</p>
+
+            <h2 class="text-center">Número máximo de visualizações:</h2>
+            <p class="text-center">{{max_views}}</p>
+
+            <h2 class="text-center">Visualizações realizadas:</h2>
+            <p class="text-center">{{views}}</p>
+
+            <h2 class="text-center">Link para visualização:</h2>
+            <p class="text-center" id="{{id}}">
+                {{url_senha}}
+            </p>
         </section>
-    </div>
+        </div>
 </body>
 
 </html>

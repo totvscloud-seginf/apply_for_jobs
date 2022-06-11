@@ -28,6 +28,8 @@ def get_password_id(rq,id):
         'expiration_date': json['expiration_date'],
         'max_views': json['max_views'],
         'views': json['views'],
+        'id': id,
+        'url_senha': "http://{}/password/{}".format(host,id)
     }
         
     # valida se a senha pose ser mostrada 
@@ -40,6 +42,7 @@ def get_password_id(rq,id):
 
     
     response2 = requests.put("http://{}/api/password/{}".format(host,id),data)
+
     return render(rq,'detalhes_senha.html', data)
 
     #http://fantunesdev-password.herokuapp.com/passwords/504fce68-d616-4fb4-aadd-f9180adab1ee/
