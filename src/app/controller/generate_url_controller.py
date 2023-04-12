@@ -7,7 +7,7 @@ from src.app.database.database import Database
 
 class GenerateUrlController:
     def __init__(self):
-        self.db = Database().collection
+        self.db = Database("passwords")
 
     def generate_url(self):
         password = request.form['password']
@@ -18,10 +18,10 @@ class GenerateUrlController:
         password_uuid = str(uuid4())
 
         password_data = {
-            'uuid': password_uuid,
+            'id': password_uuid,
             'password': password,
             'views_left': views,
-            'expires_at': expires_at
+            'expires_at': str(expires_at)
         }
 
         self.db.insert_one(password_data)
