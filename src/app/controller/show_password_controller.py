@@ -1,11 +1,13 @@
 from datetime import datetime
 from flask import request
 from src.app.database.database import Database
+from cryptography.fernet import Fernet
 
 
 class ShowPasswordController:
-    def __init__(self):
+    def __init__(self, secret_key):
         self.db = Database("passwords")
+        self.fernet = Fernet(secret_key)
 
     def show_password(self):
         password_uuid = request.json.get('password_uuid')
@@ -19,6 +21,7 @@ class ShowPasswordController:
         if datetime.strptime(password_data['expires_at'], '%Y-%m-%d %H:%M:%S.%f') < datetime.utcnow():
             self.db.delete_one(str(password_uuid), code)
             return 'Link expirado !'
-        password = password_data['password']
+        encrypted_password = password_data['password']
+        password = self.fernet.decrypt(bytes(encrypted_password)).decode('utf-8')
         self.db.update_one(str(password_uuid), code, 'SET views_left = views_left - :val')
-        return 'Sua senha é: ' + password
+        return password
