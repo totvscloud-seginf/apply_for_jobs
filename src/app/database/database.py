@@ -20,24 +20,26 @@ class Database:
     def insert_one(self, password_data):
         self.table.put_item(Item=password_data)
 
-    def find_one(self, uuid):
+    def find_one(self, password_uuid, code):
         response = self.table.query(
-            KeyConditionExpression=Key("id").eq(uuid)
+            KeyConditionExpression=Key("id").eq(password_uuid) & Key("code").eq(code)
         )
         items = response.get("Items", [])
         return items[0] if items else None
 
-    def delete_one(self, uuid):
+    def delete_one(self, uuid, code):
         self.table.delete_item(
             Key={
-                'id': uuid  # update key
+                'id': uuid,
+                'code': code
             }
         )
 
-    def update_one(self, uuid, update_expression):
+    def update_one(self, uuid, code, update_expression):
         self.table.update_item(
             Key={
-                'id': uuid
+                'id': uuid,
+                'code': code
             },
             UpdateExpression=update_expression,
             ExpressionAttributeValues={':val': 1},

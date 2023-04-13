@@ -1,7 +1,6 @@
 from uuid import uuid4
 from datetime import datetime, timedelta
 from flask import request
-
 from src.app.database.database import Database
 
 
@@ -13,6 +12,7 @@ class GenerateUrlController:
         password = request.form['password']
         views = int(request.form['views'])
         validity = int(request.form['validity'])
+        code = int(request.form['code'])
         expires_at = datetime.utcnow() + timedelta(hours=validity)
 
         password_uuid = str(uuid4())
@@ -21,7 +21,8 @@ class GenerateUrlController:
             'id': password_uuid,
             'password': password,
             'views_left': views,
-            'expires_at': str(expires_at)
+            'expires_at': str(expires_at),
+            'code': code,
         }
 
         self.db.insert_one(password_data)
