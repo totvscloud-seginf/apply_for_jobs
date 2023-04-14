@@ -11,7 +11,6 @@ class DynamoDBPasswordRepository(PasswordRepository):
         self.table = dynamodb.Table(table_name)
 
     def save_password(self, password: Password) -> None:
-        print(password.password)
         item = {
             "url": password.url,
             "password": password.password,

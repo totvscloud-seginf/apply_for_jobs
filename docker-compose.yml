@@ -1,28 +1,31 @@
 version: '3.8'
 services:
-  dynamodb-local:
-    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
-    image: "amazon/dynamodb-local:latest"
-    container_name: dynamodb-local
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME-localstack_main}"
+    image: localstack/localstack
     ports:
-      - "8000:8000"
-    volumes:
-      - "./docker/dynamodb:/home/dynamodblocal/data"
-    working_dir: /home/dynamodblocal
-
-  backend:
-    depends_on:
-      - dynamodb-local
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    image: backend_pass_gen
-    container_name: backend-pass-gen
-    ports:
-     - "8080:8080"
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
     environment:
-      AWS_ACCESS_KEY_ID: '${AWS_ACCESS_KEY_ID}'
-      AWS_SECRET_ACCESS_KEY: '${AWS_SECRET_ACCESS_KEY}'
+      - DEBUG=${DEBUG-}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  # backend:
+  #   depends_on:
+  #     - dynamodb-local
+  #   build:
+  #     context: ./
+  #     dockerfile: Dockerfile
+  #   image: backend_pass_gen
+  #   container_name: backend-pass-gen
+  #   ports:
+  #    - "8080:8080"
+  #   environment:
+  #     AWS_ACCESS_KEY_ID: '${AWS_ACCESS_KEY_ID}'
+  #     AWS_SECRET_ACCESS_KEY: '${AWS_SECRET_ACCESS_KEY}'
 
   # frontend:
   #   depends_on:
