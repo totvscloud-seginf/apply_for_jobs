@@ -1,0 +1,2 @@
+class PasswordNotFoundError(Exception):
+    pass

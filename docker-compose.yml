@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  dynamodb-local:
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+
+  backend:
+    depends_on:
+      - dynamodb-local
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: backend_pass_gen
+    container_name: backend-pass-gen
+    ports:
+     - "8080:8080"
+    environment:
+      AWS_ACCESS_KEY_ID: '${AWS_ACCESS_KEY_ID}'
+      AWS_SECRET_ACCESS_KEY: '${AWS_SECRET_ACCESS_KEY}'
+
+  # frontend:
+  #   depends_on:
+  #     - backend
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   image: node:18.12.1-alpine
+  #   container_name: app-node
+  #   ports:
+  #    - "3000:3000"
+  #   command:
+  #     - "yarn && yarn start"

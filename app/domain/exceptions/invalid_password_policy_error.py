@@ -1,0 +1,2 @@
+class InvalidPasswordPolicyError(Exception):
+    pass
