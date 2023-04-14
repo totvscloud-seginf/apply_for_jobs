@@ -62,7 +62,12 @@ const Register = () => {
 
     const handleCheck = () =>{
         setAutoPassword(!autoPassword)
-        setBtnLabel('Gerar Senha')
+        if(!autoPassword){
+            setBtnLabel('Gerar Senha')
+        }else{
+            setBtnLabel('Salvar senha')
+        }
+            
         if(showPassInput === 'none'){
             setshowPassInput('')
             return
@@ -281,45 +286,45 @@ const Register = () => {
                                             )}
 
                                             <Grid item xs={6} lg={6}>
-                                                <Stack>
+                                                <Stack> 
                                                     <InputLabel htmlFor="email-signup">Definir tempo de vida</InputLabel>
                                                     <OutlinedInput
                                                         
-                                                        error={Boolean(touched.email && errors.email)}
+                                                        error={Boolean(touched.lifetime && errors.lifetime)}
                                                         id="pass-lifetime"
                                                         type="number"
-                                                        value={values.email}
+                                                        value={values.lifetime}
                                                         name="passlifetime"
                                                         onBlur={handleBlur}
                                                         onChange={handleChange}
                                                         placeholder="Valores em horas"
                                                         inputProps={{}}
                                                     />
-                                                    {touched.email && errors.email && (
+                                                    {touched.lifetime && errors.lifetime && (
                                                         <FormHelperText error id="helper-text-email-signup">
-                                                            {errors.email}
+                                                            {errors.lifetime}
                                                         </FormHelperText>
                                                     )}
                                                 </Stack>
                                             </Grid>
                                             <Grid item xs={6} lg={6}>
                                                 <Stack sx={{ minWidth: 0 }}>
-                                                    <InputLabel htmlFor="email-signup">Quantidade de Clicks no link?</InputLabel>
+                                                    <InputLabel htmlFor="email-signup">Máximo de visualizações</InputLabel>
                                                     <OutlinedInput
                                                         
-                                                        error={Boolean(touched.email && errors.email)}
-                                                        id="passlink-lifetime"
+                                                        error={Boolean(touched.maxview && errors.maxview)}
+                                                        id="passlink-maxview"
                                                         type="number"
-                                                        value={values.email}
-                                                        name="passlinklifetime"
+                                                        value={values.maxview}
+                                                        name="maxview"
                                                         onBlur={handleBlur}
                                                         onChange={handleChange}
                                                         placeholder="Link poderá ser aberto n vezes"
                                                         inputProps={{}}
                                                     />
-                                                    {touched.email && errors.email && (
+                                                    {touched.maxview && errors.maxview && (
                                                         <FormHelperText error id="helper-text-email-signup">
-                                                            {errors.email}
+                                                            {errors.maxview}
                                                         </FormHelperText>
                                                     )}
                                                 </Stack>
