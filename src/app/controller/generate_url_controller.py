@@ -31,4 +31,4 @@ class GenerateUrlController:
 
         self.db.insert_one(password_data)
 
-        return request.host_url + 'password/' + str(password_uuid)
+        return str(password_uuid)

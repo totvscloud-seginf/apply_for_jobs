@@ -14,7 +14,6 @@ form.addEventListener("submit", (event) => {
         .then((response) => response.text())
         .then((data) => {
             const link = "http://localhost:4566/static-bucket/show-password.html?uuid=" + data;
-            // "file:///Users/messiasnunesmaia/VS%20Projects/totvs-front-2/show-password.html?uuid=" + data;
             document.getElementById("linkSpan").innerHTML = link;
             document.getElementById("link").href = link;
         });
