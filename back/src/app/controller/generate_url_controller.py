@@ -1,8 +1,8 @@
+import json
 from uuid import uuid4
 from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
-from flask import request
-from src.app.database.database import Database
+from back.src.app.database.database import Database
 
 
 class GenerateUrlController:
@@ -11,11 +11,17 @@ class GenerateUrlController:
         self.db = Database("passwords")
         self.fernet = Fernet(self.secret_key)
 
-    def generate_url(self):
-        password = request.form['password']
-        views = int(request.form['views'])
-        validity = int(request.form['validity'])
-        code = int(request.form['code'])
+    def generate_url(self, event):
+        if 'password' not in event or 'views' not in event or 'validity' not in event or 'code' not in event:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'message': "missing attributes"})
+            }
+
+        password = event['password']
+        views = event['views']
+        validity = event['validity']
+        code = event['code']
         expires_at = datetime.utcnow() + timedelta(hours=validity)
 
         password_uuid = str(uuid4())
@@ -31,4 +37,7 @@ class GenerateUrlController:
 
         self.db.insert_one(password_data)
 
-        return str(password_uuid)
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'password_id': password_uuid})
+        }

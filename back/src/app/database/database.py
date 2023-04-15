@@ -1,5 +1,11 @@
 import boto3
+import os
 from boto3.dynamodb.conditions import Key, Attr
+
+
+aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+endpoint_url = os.environ.get("DATABASE_URL")
 
 
 class Database:
@@ -9,9 +15,9 @@ class Database:
         self.dynamodb = boto3.resource(
             "dynamodb",
             region_name="sa-east-1",
-            endpoint_url="http://localhost:4577",
-            aws_access_key_id='test',
-            aws_secret_access_key='test',
+            endpoint_url=endpoint_url,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
             verify=False,
         )
 
@@ -43,5 +49,5 @@ class Database:
             },
             UpdateExpression=update_expression,
             ExpressionAttributeValues={':val': 1},
-            ConditionExpression=Attr('views_left').gt(0),  # Prevent negative views_left
+            ConditionExpression=Attr('views_left').gt(0),
         )
