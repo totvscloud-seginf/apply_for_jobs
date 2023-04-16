@@ -1,9 +1,10 @@
 import json
+import os
+
 from back.src.app.controller.generate_url_controller import GenerateUrlController
 from back.src.app.controller.show_password_controller import ShowPasswordController
-from cryptography.fernet import Fernet
 
-secret_key = Fernet.generate_key()
+secret_key = os.environ.get('SECRET_KEY')
 generate_url_controller = GenerateUrlController(secret_key)
 show_password_controller = ShowPasswordController(secret_key)
 
