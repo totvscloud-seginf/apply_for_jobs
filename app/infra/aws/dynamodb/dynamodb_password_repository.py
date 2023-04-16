@@ -4,10 +4,15 @@ from typing import Optional
 from boto3.dynamodb.conditions import Key
 from app.domain.entities.password import Password
 from app.domain.repositories.password_repository import PasswordRepository
+from app.domain.exceptions.password_not_found_error import PasswordNotFoundError
 
 class DynamoDBPasswordRepository(PasswordRepository):
     def __init__(self, table_name: str = "passwords"):
-        dynamodb = boto3.resource("dynamodb", endpoint_url=os.environ.get("DYNAMODB_ENDPOINT_URL"))
+        dynamodb = boto3.resource(
+            "dynamodb", 
+            endpoint_url=os.environ.get("AWS_ENDPOINT_URL"),
+            region_name='us-east-1'
+        )
         self.table = dynamodb.Table(table_name)
 
     def save_password(self, password: Password) -> None:
@@ -24,7 +29,8 @@ class DynamoDBPasswordRepository(PasswordRepository):
         response = self.table.query(KeyConditionExpression=Key("url").eq(url))
         items = response.get("Items", [])
         if not items:
-            return None
+            raise PasswordNotFoundError
+        
         item = items[0]
         return Password(
             password=item["password"],
@@ -36,7 +42,7 @@ class DynamoDBPasswordRepository(PasswordRepository):
         response = self.table.scan(FilterExpression=Key("password").eq(password))
         items = response.get("Items", [])
         if not items:
-            return None
+            raise PasswordNotFoundError
         item = items[0]
         return Password(
             password=item["password"],

@@ -1,4 +1,4 @@
-from repositories.password_repository import PasswordRepository
+from ..repositories.password_repository import PasswordRepository
 
 class ValidatePasswordUseCase:
     def __init__(self, password_repository: PasswordRepository):

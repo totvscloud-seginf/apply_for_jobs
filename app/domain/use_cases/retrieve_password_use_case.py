@@ -1,7 +1,7 @@
 
-from repositories.password_repository import PasswordRepository
-from exceptions.password_not_found_error import PasswordNotFound
-from entities.password import Password
+from app.domain.repositories.password_repository import PasswordRepository
+from app.domain.exceptions.password_not_found_error import PasswordNotFoundError
+from app.domain.entities.password import Password
 
 class RetrievePasswordUseCase:
     def __init__(self, password_repository: PasswordRepository) -> None:
