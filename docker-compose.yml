@@ -7,8 +7,13 @@ services:
       - "127.0.0.1:4566:4566"            # LocalStack Gateway
       - "127.0.0.1:4510-4559:4510-4559"  # external services port range
     environment:
-      - DEBUG=${DEBUG-}
+      - DEBUG=1
       - DOCKER_HOST=unix:///var/run/docker.sock
+      - PASS_CRYPTO_KEY=${PASS_CRYPTO_KEY}
+      - PORT_WEB_UI=8080
+      - LAMBDA_EXECUTOR=docker-reuse
+      - LAMBDA_REMOTE_DOCKER=true
+      - LAMBDA_REMOVE_CONTAINERS=true
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
