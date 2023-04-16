@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <!-- MDB -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.2.0/mdb.min.css" rel="stylesheet" />
+    <title>Totvs</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="text-center mt-5">
+            <h2>Código: <span id="code"></span></h2>
+            <p class="text-danger">Grave este código para ser usado na visualização de senha</p>
+        </div>
+        <form class="col-4 mx-auto mt-5" id="myForm">
+            <!-- Password options -->
+            <div class="form-outline mb-4">
+                <label class="form-label" for="passwordOptions">Opções de senha</label>
+                <select name="passwordOptions" id="passwordOptions" class="form-select" required>
+                    <option selected value="custom">Customizada</option>
+                    <option value="simple">Senha simples (Apenas letras e números)</option>
+                    <option value="medium">Senha média (Letras maiúsculas e minúsculas e números)</option>
+                    <option value="strong">Senha forte (Letras maiúsculas e minúsculas, números e caracteres especiais)
+                    </option>
+                </select>
+            </div>
+
+            <!-- Password input -->
+            <div class="form-outline mb-4">
+                <input type="password" name="password" id="password" class="form-control" required/>
+                <label class="form-label" for="password">Password</label>
+            </div>
+
+            <!-- Quantidade input -->
+            <div class="form-outline mb-4">
+                <input type="number" name="views" id="views" class="form-control" required />
+                <label class="form-label" for="views">Quantidade de visualizacoes</label>
+            </div>
+            <!-- Disponibilidade input -->
+            <div class="form-outline mb-4">
+                <input type="number" name="validity" id="validity" class="form-control" required />
+                <label class="form-label" for="validity">Validade (em horas)</label>
+            </div>
+            <!-- Submit button -->
+            <button type="submit" class="btn btn-primary btn-block">Gerar link</button>
+        </form>
+        <div class="mt-5">
+            <p>Link: <a id="link" target="_blank"><span id="linkSpan"></span></a></p>
+        </div>
+    </div>
+
+    <!-- MDB -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.2.0/mdb.min.js"></script>
+
+    <script src="./index.js"></script>
+
+</body>
+
+</html>
