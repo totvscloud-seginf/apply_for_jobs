@@ -10,7 +10,7 @@ class ShowPasswordController:
         self.fernet = Fernet(secret_key)
 
     def show_password(self, event):
-        if 'password_uuid' not in event or 'code' not in event:
+        if 'password_uuid' not in event or not event['password_uuid'] or 'code' not in event or not event['code']:
             return {
                 'statusCode': 400,
                 'body': json.dumps({'message': "missing attributes"})
@@ -20,13 +20,13 @@ class ShowPasswordController:
         code = event['code']
         password_data = self.db.find_one(str(password_uuid), code)
         if not password_data:
-            return {'message': 'Invalid URL'}
+            return {'statusCode': 400, 'message': 'Invalid URL'}
         if password_data['views_left'] == 0:
             self.db.delete_one(str(password_uuid), code)
-            return {'message': 'Views exhausted'}
+            return {'statusCode': 400, 'message': 'Views exhausted'}
         if datetime.fromisoformat(password_data['expires_at']) < datetime.now():
             self.db.delete_one(str(password_uuid), code)
-            return {'message': 'Link expired!'}
+            return {'statusCode': 400, 'message': 'Link expired!'}
         encrypted_password = password_data['password']
         password = self.fernet.decrypt(bytes(encrypted_password)).decode('utf-8')
         self.db.update_one(str(password_uuid), code, 'SET views_left = views_left - :val')
