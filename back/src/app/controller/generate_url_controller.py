@@ -3,7 +3,8 @@ import random
 import string
 from uuid import uuid4
 from datetime import datetime, timedelta
-from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import hashes
 from back.src.app.database.database import Database
 
 
@@ -16,10 +17,9 @@ def has_missing_attributes(event):
 
 
 class GenerateUrlController:
-    def __init__(self, secret_key):
-        self.secret_key = secret_key
+    def __init__(self, public_key):
+        self.public_key = public_key
         self.db = Database("passwords")
-        self.fernet = Fernet(self.secret_key)
 
     def generate_url(self, event):
 
@@ -59,7 +59,10 @@ class GenerateUrlController:
         expires_at = datetime.utcnow() + timedelta(hours=validity)
 
         password_uuid = str(uuid4())
-        encrypted_password = self.fernet.encrypt(bytes(password.encode('utf-8')))
+        encrypted_password = \
+            self.public_key.encrypt(bytes(password.encode('utf-8')),
+                                    padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                                                 algorithm=hashes.SHA256(), label=None))
 
         password_data = {
             'id': password_uuid,
