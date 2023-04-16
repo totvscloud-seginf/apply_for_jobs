@@ -1,8 +1,18 @@
 import json
+import random
+import string
 from uuid import uuid4
 from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
 from back.src.app.database.database import Database
+
+
+def has_missing_attributes(event):
+    required_attributes = ['passwordOptions', 'views', 'validity', 'code']
+    for attr in required_attributes:
+        if attr not in event or not event[attr]:
+            return True
+    return False
 
 
 class GenerateUrlController:
@@ -12,13 +22,37 @@ class GenerateUrlController:
         self.fernet = Fernet(self.secret_key)
 
     def generate_url(self, event):
-        if 'password' not in event or 'views' not in event or 'validity' not in event or 'code' not in event:
+
+        if has_missing_attributes(event):
             return {
                 'statusCode': 400,
                 'body': json.dumps({'message': "missing attributes"})
             }
 
-        password = event['password']
+        password_options = event['passwordOptions']
+        password = ''
+
+        # Se enviou senha customizada ou nao
+        if password_options == "custom":
+            if 'password' not in event or not event['password']:
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({'message': "missing attributes"})
+                }
+            password = event['password']
+        else:
+            characters = ''
+            password_length = 8
+            if password_options == "simple":
+                characters = string.ascii_letters + string.digits
+            elif password_options == "medium":
+                characters = string.ascii_letters + string.digits
+                password_length = 12
+            elif password_options == "strong":
+                characters = string.ascii_letters + string.digits + string.punctuation
+                password_length = 16
+            password = ''.join(random.choice(characters) for i in range(password_length))
+
         views = event['views']
         validity = event['validity']
         code = event['code']

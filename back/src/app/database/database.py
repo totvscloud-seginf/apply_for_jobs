@@ -3,6 +3,7 @@ import os
 from boto3.dynamodb.conditions import Key, Attr
 
 
+# Variaveis de ambiente para conexao com BD
 aws_access_key_id = os.environ.get("AWS_ACCESS_KEY_ID")
 aws_secret_access_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
 endpoint_url = os.environ.get("DATABASE_URL")
@@ -41,6 +42,7 @@ class Database:
             }
         )
 
+    # Atualiza objeto e diminui quantidade de visualizacoes
     def update_one(self, uuid, code, update_expression):
         self.table.update_item(
             Key={
