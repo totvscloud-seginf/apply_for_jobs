@@ -21,11 +21,24 @@
             <p class="text-danger">Grave este código para ser usado na visualização de senha</p>
         </div>
         <form class="col-4 mx-auto mt-5" id="myForm">
+            <!-- Password options -->
+            <div class="form-outline mb-4">
+                <label class="form-label" for="passwordOptions">Opções de senha</label>
+                <select name="passwordOptions" id="passwordOptions" class="form-select" required>
+                    <option selected value="custom">Customizada</option>
+                    <option value="simple">Senha simples (Apenas letras e números)</option>
+                    <option value="medium">Senha média (Letras maiúsculas e minúsculas e números)</option>
+                    <option value="strong">Senha forte (Letras maiúsculas e minúsculas, números e caracteres especiais)
+                    </option>
+                </select>
+            </div>
+
             <!-- Password input -->
             <div class="form-outline mb-4">
-                <input type="password" name="password" id="password" class="form-control" required />
+                <input type="password" name="password" id="password" class="form-control" required/>
                 <label class="form-label" for="password">Password</label>
             </div>
+
             <!-- Quantidade input -->
             <div class="form-outline mb-4">
                 <input type="number" name="views" id="views" class="form-control" required />
@@ -46,7 +59,7 @@
 
     <!-- MDB -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.2.0/mdb.min.js"></script>
-    
+
     <script src="./index.js"></script>
 
 </body>
