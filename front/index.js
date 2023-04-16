@@ -25,10 +25,18 @@ form.addEventListener("submit", (event) => {
     fetch(gateway_url + "generate_url", {
         method: "POST",
         body: formData,
-    }).then((response) => response.text())
-    .then((data) => {
-            const link = s3_url + "show-password.html?uuid=" + data;
-            document.getElementById("linkSpan").innerHTML = link;
-            document.getElementById("link").href = link;
-        });
+    }).then((response) => {
+        if (response.status === 200) {
+            response.json().then((data) => {
+                const link = s3_url + "show-password.html?uuid=" + data.password_id;
+                document.getElementById("linkSpan").innerHTML = link;
+                document.getElementById("link").href = link;
+            });
+            response.json().then((data) => {
+                document.getElementById("error").innerHTML = data.message;
+            });
+        } else {
+            alert("Erro inesperado, verifique se o formulário esta correto.");
+        }
+    });
 });
