@@ -1,0 +1,10 @@
+.env
+__pycache__
+docker/**
+.venv
+volume/**
+node_modules
+*.cfg
+*.log
+*-lock.json
+*.pyc

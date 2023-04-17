@@ -1,0 +1,93 @@
+service: backend
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: python3.9
+  timeout: 30
+  environment:
+    DYNAMODB_TABLE: passwords
+  httpApi:
+    cors: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+custom:
+  dynamodb:
+  # If you only want to use DynamoDB Local in some stages, declare them here
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      heapInitial: 200m
+      heapMax: 1g
+      migrate: true
+      seed: true
+      convertEmptyValues: true
+
+  serverless-offline:
+    httpPort: 4000
+    lambdaPort: 3005
+      
+package:
+  exclude:
+    - .gitignore
+    - .git/**
+    - .vscode/**
+    - node_modules/**
+    - .pytest_cache/**
+    - .dynamodb/**
+
+plugins:
+  - serverless-python-requirements
+  - serverless-dynamodb-local
+  - serverless-offline
+
+functions:
+  get:
+    handler: app/infra/aws/lambda_function/handler.get_password
+    events:
+      - httpApi:
+          path: /password/{id}
+          method: GET
+  post:
+    handler: app/infra/aws/lambda_function/handler.set_password
+    events:
+      - httpApi:
+          path: /password
+          method: POST
+
+resources:
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - 
+            AttributeName: id
+            AttributeType: S
+          - 
+            AttributeName: password
+            AttributeType: S
+        KeySchema:
+          - 
+            AttributeName: id
+            KeyType: HASH
+          - 
+            AttributeName: password
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5

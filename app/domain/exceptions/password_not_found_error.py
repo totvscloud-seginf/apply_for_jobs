@@ -1,2 +1,0 @@
-class PasswordNotFoundError(Exception):
-    pass

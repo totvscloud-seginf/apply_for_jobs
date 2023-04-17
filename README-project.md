@@ -16,86 +16,41 @@ sequenceDiagram
     API Gateway-->>-User: HTTP Response
 ```
 
-> cryptography error solved
-```sh 
-pip install \
-  --platform manylinux2014_x86_64 \
-  --implementation cp \
-  --python 3.9 \
-  --only-binary=:all: --upgrade \
-  --target=build/package \
-  cryptography==38.0.3
-```
-### Create lambda package
+## Installation
 
-```sh
-python scripts/zip.py
-```
+> local:
 
-### Create lambda function
+1. install python requirements
+    ```sh
+    cd backend && python3 -m venv .venv && source .venv/bin/activate && pip3 install -r requirements.txt
+    ```
 
-```sh
-awslocal lambda create-function \
-    --function-name pass-generate-security \
-    --runtime python3.9 \
-    --zip-file fileb:///var/lib/localstack/deployment-package.zip \
-    --handler main.lambda_handler \
-    --role arn:aws:iam::000000000000:role/lambda-role
+2. install node dependencies
+    ```sh
+    cd frontend && npm install
+    cd backend && npm install
+    ``` 
 
-# update lambda function
-awslocal lambda update-function-code \
-    --function-name pass-generate-security \
-    --zip-file fileb:///var/lib/localstack/deployment-package.zip
-```
+3. start project with serverless offline
+    ```sh
+    docker compose up -d && python3 start_local.py
+    ```
 
-### Create api gateway
-
-```sh
-awslocal apigateway create-rest-api --region us-east-1 --name 'API pass-gen'
-
-awslocal apigateway get-resources --region us-east-1 --rest-api-id <rest-api-id>
-
-awslocal apigateway create-resource \
---region us-east-1 \
---rest-api-id <rest-api-id> \
---parent-id <resource-id> \
---path-part "password"
-
-awslocal apigateway create-resource \
---region us-east-1 \
---rest-api-id <rest-api-id> \
---parent-id <password-endpoint-id> \
---path-part "{id}"
-
-awslocal apigateway put-method \
---region us-east-1 \
---rest-api-id <rest-api-id> \
---resource-id <{id}-endpoint-id> \
---http-method ANY \
---request-parameters "method.request.path.id=true" \
---authorization-type "NONE"
-
-awslocal apigateway put-integration \
---region us-east-1 \
---rest-api-id <rest-api-id> \
---resource-id <{id}-endpoint-id> \
---http-method ANY \
---type AWS_PROXY \
---integration-http-method POST \
---uri arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:000000000000:function:pass-generate-security/invocations \
---passthrough-behavior WHEN_NO_MATCH
-
-awslocal apigateway create-deployment \
---region us-east-1 \
---rest-api-id <rest-api-id> \
---stage-name pass-gen
-```
-
-### API endpoints
+### Backend API
     
-> POST | GET | DELETE
+> GET
 ```sh
-http://localhost:4566/restapis/n1ifgemi7c/pass-gen/_user_request_/password/{id}
+http://localhost:4000/password/{id}
+```
+
+> POST
+```sh
+endpoint: http://localhost:4000/password
+body: {
+    "password": "123",
+    "view_limit": 3,
+    "valid_until": 2
+}
 ```
 
 
