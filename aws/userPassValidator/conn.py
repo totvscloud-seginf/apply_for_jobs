@@ -1,6 +1,7 @@
 import boto3
 import uuid
 import datetime
+import base64
 
 class Database:
     def __init__(self):
@@ -25,6 +26,7 @@ class Database:
             userpass_item = {
                 'userid': user_id,
                 'passid': int(uuid.uuid4()),
+                'password':  base64.b64encode(password.password.encode("utf-8")),
                 'passlifetime': passlifetime,
                 'passlimitview': password.passlimitview,
                 'currentlink': password.linkdata,
@@ -50,6 +52,7 @@ class Database:
         userpass_item = {
                 'userid': user_id,
                 'passid': int(uuid.uuid4()),
+                'password':  base64.b64encode(newpass.password.encode("utf-8")),
                 'passlifetime': passlifetime,
                 'passlimitview': newpass.passlimitview,
                 'currentlink': newpass.linkdata,
@@ -95,15 +98,15 @@ class Database:
         
         userpass_response = self.passTable.query(
             IndexName='userid-index',
-            KeyConditionExpression='userid = :userid',
+            KeyConditionExpression='userid = :userid and password = :password',
             ExpressionAttributeValues={
-                ':uid': user_items.userid,
+                ':uid': user_items.userid,                
             }
         )
 
         userpass_items = userpass_response['Items']
         
         if len(userpass_items) == 0:
-            return {'result': 'WARNING', 'err_code': '0', 'data': 'O login foi identificado mas há um erro no cadastro'}
+            return {'result': 'WARNING', 'err_code': '2000', 'data': 'Senha não cadastrada'}
         
         return  userpass_items
