@@ -38,15 +38,21 @@ class PasswordUseCase:
         return password
 
     def retrieve_password(self, id: str) -> Password:
-        password = self.password_repository.get_password_by_id(id)
+        # retrieve password from the repository
+        password = self.get_password_by_id(id)
+        # if not found, raise an exception
         if password is None:
             raise PasswordNotFoundError(id)
+        # otherwise return the password
         return password
 
     @staticmethod
     def cryptography(password: str, key: str) -> str:
+        # First, we need to create a Fernet object to encrypt the password
         f = Fernet(bytes(key, encoding='utf8'))
+        #Then we need to convert the password string to a byte object and encrypt it
         password: bytes = f.encrypt(password.encode())
+        #Finally, we need to convert the byte object to a string and return it
         return password.decode()
     
     @staticmethod
@@ -61,5 +67,8 @@ class PasswordUseCase:
     def validate_password(self, password: Password) -> bool:
         if password.password is None or password.password == '':
             return False
-         
+        
+        if not password.valid_until or not password.visualizations_limit:
+            return False
+        
         return True

@@ -21,7 +21,7 @@ export default function genPassOptions(
     const [passLength, setPassLength] = React.useState<number>(8);
 
     return (
-        <div className="grid grid-rows-2 grid-flow-col gap-4 rounded-md shadow-md p-4 mt-5">
+        <div className="lg:grid lg:grid-rows-2 sm:flex sm:flex-col lg:grid-flow-col gap-4 rounded-md shadow-md p-4 mt-5">
             <label>
                 <span className="block">With capital letters</span>
                 <Switch
@@ -66,7 +66,7 @@ export default function genPassOptions(
                 />
             </label>
             <button
-                className="w-full rounded-full bg-secondary text-primary font-semibold py-2 px-4 mt-4 hover:border-primary cursor-pointer hover:bg-white hover:text-secondary"
+                className="w-full rounded-full bg-secondary text-black font-semibold py-2 px-4 mt-4 hover:border-black hover:border-2 cursor-pointer hover:bg-white hover:text-secondary transition duration-500 ease-in-out"
                 type='button'
                 onClick={() => {
                     setValue("password", passwordGenerator({

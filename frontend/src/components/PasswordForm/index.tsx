@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { UseFormReset, useForm } from "react-hook-form";
 import Switch from "react-switch";
 import GenPassOptions from "./genPassOptions";
 import { setPassword, IPassword } from "../../../app/api/setPassword";
@@ -7,77 +7,20 @@ import config from "../../server/config";
 import Swal from 'sweetalert2';
 
 export default function GenPassForm(): React.ReactElement {
-  const { register, setValue, handleSubmit, formState: { errors }, getValues } = useForm<IPassword>();
+  const { register, setValue, handleSubmit, formState: { errors }, getValues, reset } = useForm<IPassword>();
   const [viewPassword, setViewPassword] = React.useState<boolean>(false);
   const [dateInDays, setDateInDays] = React.useState<number>(0);
+  const [isGeneratePass, setIsGeneratePass] = React.useState<boolean>(false);
 
   const onSubmit = handleSubmit((data) => {
     data.valid_until = dateInDays;
-    Swal.showLoading();
-    setPassword(data, config.app.API_URL).then((res) => {
-      const html = `<a className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="${config.app.URL}/password/${res.id}">${config.app.URL}/password/${res.id}</a>`;
-      Swal.fire({
-        title: 'Password Generated',
-        html: html,
-        icon: 'success',
-        confirmButtonText: 'Copy to clipboard',
-        preConfirm: () => {
-          navigator.clipboard.writeText(`${config.app.URL}/password/${res.id}`).then(() => {
-            Swal.fire({
-              title: 'Success',
-              text: 'Copied to clipboard',
-              icon: 'success',
-              toast: true,
-              position: 'top-end',
-              showConfirmButton: false,
-              timer: 3000,
-              timerProgressBar: true,
-              didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-              }
-            });
-          }).catch((err) => {
-            Swal.fire({
-              title: 'Error',
-              text: 'Error copying to clipboard',
-              icon: 'error',
-              toast: true,
-              position: 'top-end',
-              showConfirmButton: false,
-              timer: 3000,
-              timerProgressBar: true,
-              didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-              }
-            });
-          });
-        }
-      });
-    }).catch((err) => {
-      console.log(err);
-      Swal.fire({
-        title: 'Error',
-        text: 'Error generating password',
-        icon: 'error',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-          toast.addEventListener('mouseenter', Swal.stopTimer)
-          toast.addEventListener('mouseleave', Swal.resumeTimer)
-        }
-      });
-    });
+    submitFormHandler(data, reset) 
   });
-  const [isGeneratePass, setIsGeneratePass] = React.useState<boolean>(false);
+  
  
   return (
     <form 
-      className="flex flex-col items-center justify-center w-3/4 m-auto h-full mb-10"
+      className="flex flex-col items-center justify-center sm:w-full sm:mx-0 md:w-3/4 md:mx-auto h-full mb-10"
       onSubmit={onSubmit}>
       <div className="w-1/2 mb-10 relative">
         <label className="block">Password</label>
@@ -111,6 +54,7 @@ export default function GenPassForm(): React.ReactElement {
           focus:invalid:border-pink-500 focus:invalid:ring-pink-500"
           type="date"
           {...register("valid_until", {
+            required: true,
             validate: (value) => {
               if(!value) return true;
               const date = new Date(value);
@@ -137,13 +81,21 @@ export default function GenPassForm(): React.ReactElement {
           invalid:border-pink-500 invalid:text-pink-600
           focus:invalid:border-pink-500 focus:invalid:ring-pink-500"
           type="number"
-          value={getValues("view_limit") || 2}
+          value={getValues("view_limit")}
           {...register("view_limit", {
+            required: true,
             validate: (value) => {
               return value > 0;
             },
             min: 1,
+            value: 2,
             valueAsNumber: true,
+            onChange: (value) => {
+              if(!value) return null;
+              if(value.target.value < 1) {
+                setValue("view_limit", 1);
+              }
+            }
           })} 
         />
       </div>
@@ -159,9 +111,72 @@ export default function GenPassForm(): React.ReactElement {
       </div>
       
       <input 
-        className="rounded-full bg-secondary text-primary font-semibold py-2 px-4 mt-4 hover:border-primary hover:text-gray-800 hover:bg-white cursor-pointer transition duration-200 ease-in-out"
+        className="rounded-full bg-secondary text-black font-semibold py-2 px-4 mt-4 hover:border-2 hover:border-black hover:text-gray-800 hover:bg-white cursor-pointer transition duration-200 ease-in-out"
         type="submit" 
       />
     </form>
   );
+}
+
+const submitFormHandler = async (data: IPassword, reset: UseFormReset<IPassword>) => {
+  Swal.showLoading();
+  setPassword(data, config.app.API_URL).then((res) => {
+    const html = `<a className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="${config.app.URL}/password/${res.id}">${config.app.URL}/password/${res.id}</a>`;
+    reset();
+    Swal.fire({
+      title: 'Password Generated',
+      html: html,
+      icon: 'success',
+      confirmButtonText: 'Copy to clipboard',
+      preConfirm: () => {
+        navigator.clipboard.writeText(`${config.app.URL}/password/${res.id}`).then(() => {
+          Swal.fire({
+            title: 'Success',
+            text: 'Copied to clipboard',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.addEventListener('mouseenter', Swal.stopTimer)
+              toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+          });
+        }).catch((err) => {
+          Swal.fire({
+            title: 'Error',
+            text: 'Error copying to clipboard',
+            icon: 'error',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.addEventListener('mouseenter', Swal.stopTimer)
+              toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+          });
+        });
+      }
+    });
+  }).catch((err) => {
+    console.log(err);
+    Swal.fire({
+      title: 'Error',
+      text: 'Error generating password',
+      icon: 'error',
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      }
+    });
+  });
 }

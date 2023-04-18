@@ -9,7 +9,7 @@ import app.domain.exceptions.invalid_visualizations_limit_error as invalid_visua
 class PassArgs(TypedDict):
     password: str
     visualizations_limit: int
-    valid_until: Optional[float]
+    valid_until: float
     views_count: int
     id: str
 
@@ -27,7 +27,7 @@ class Password:
         self.password = kwargs.get('password')
         self.visualizations_limit = kwargs.get('visualizations_limit')
         self.valid_until = kwargs.get('valid_until')
-        self.views_count = kwargs.get('views_count') if kwargs.get('views_count') else 0
+        self.views_count = kwargs.get('views_count')
         self.id = kwargs.get('id') if kwargs.get('id') else str(uuid.uuid4())
 
     def view_password(self) -> str:
@@ -45,13 +45,4 @@ class Password:
             raise expired_password_error.ExpiredPasswordError(self.id)
 
         self.views_count += 1
-        return self.password
-
-    def is_valid(self) -> bool:
-        """Returns True if the password is valid and False otherwise.
-        Returns:
-            bool: True if the password is valid and False otherwise.
-        """
-        if self.valid_until is not None:
-            return self.valid_until >= datetime.now().timestamp() and self.views_count < self.visualizations_limit
-        return self.views_count < self.visualizations_limit
+        return self.password        

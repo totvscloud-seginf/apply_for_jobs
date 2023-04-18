@@ -11,7 +11,7 @@ export default function App( {passID}: {passID?: string | null} ) {
   return (
     <div className="App">
       <Header />
-      <p className="App-intro mt-10 px-20">
+      <p className="App-intro mt-10 md:px-20 sm:px-5">
         {!passID 
         ? ( <PassForm /> ) 
         : (

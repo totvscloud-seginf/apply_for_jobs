@@ -20,7 +20,7 @@ class DynamoDBPasswordRepository(PasswordRepository):
             "id": password.id,
             "password": password.password,
             "max_views": password.visualizations_limit,
-            "expiration_time": int( password.valid_until ) if password.valid_until is not None else '',
+            "expiration_time": int( password.valid_until ),
             "views_count": password.views_count,
         }
         return self.table.put_item(Item=item)
@@ -53,7 +53,7 @@ class DynamoDBPasswordRepository(PasswordRepository):
             id=item['id'],
             password=item['password'],
             visualizations_limit=item['max_views'],
-            valid_until= item['expiration_time'] if item['expiration_time'] else None,
+            valid_until= item['expiration_time'],
             views_count=item['views_count']
         )
 

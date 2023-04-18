@@ -3,7 +3,6 @@ from typing import Optional
 
 import app.domain.entities.password as entities
 
-
 class PasswordRepository(ABC):
     @abstractmethod
     def save_password(self, password: entities.Password) -> None:

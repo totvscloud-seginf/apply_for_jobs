@@ -20,17 +20,18 @@ This function is called when a POST request is made to the /password/{id} endpoi
 def set_password(event, context) -> dict:
     # Get the request body
     body = event['body'] or {}
-    request = json.loads(body)
 
-    # Create a Password object
-    password = Password(
-        password=request['password'],
-        visualizations_limit=request['view_limit'],
-        valid_until=datetime.timestamp(datetime.now()) + (int(request['valid_until']) * 86400) if request['valid_until'] else None,
-    )
-
-    # Generate the password
+    # set the password
     try:
+        request = json.loads(body)
+        # Create a Password object
+        password = Password(
+            password=request['password'],
+            visualizations_limit=int( request['view_limit'] ),
+            valid_until=datetime.timestamp( datetime.now() ) + ( int( request['valid_until'] ) * 86400 ), # 86400 seconds in a day
+            views_count=0
+        )
+
         response = controller.set_password(password)
         return {
             'statusCode': 201,
