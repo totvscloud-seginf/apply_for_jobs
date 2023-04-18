@@ -8,11 +8,15 @@ from app.domain.exceptions.password_not_found_error import PasswordNotFoundError
 
 class DynamoDBPasswordRepository(PasswordRepository):
     def __init__(self, table_name: str = "passwords"):
-        dynamodb = boto3.resource(
-            "dynamodb", 
-            endpoint_url=os.environ.get("DYNAMODB_ENDPOINT_URL"),
-            region_name='us-east-1'
-        )
+        if os.environ.get('IS_OFFLINE'):
+            dynamodb = boto3.resource(
+                "dynamodb", 
+                endpoint_url=os.environ.get("DYNAMODB_ENDPOINT_URL"),
+                region_name='us-east-1'
+            )
+        else:
+            dynamodb = boto3.resource("dynamodb")
+
         self.table = dynamodb.Table(table_name)
 
     def save_password(self, password: Password) -> None:

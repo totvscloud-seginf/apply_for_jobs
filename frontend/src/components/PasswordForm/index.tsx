@@ -3,8 +3,9 @@ import { UseFormReset, useForm } from "react-hook-form";
 import Switch from "react-switch";
 import GenPassOptions from "./genPassOptions";
 import { setPassword, IPassword } from "../../../app/api/setPassword";
-import config from "../../server/config";
 import Swal from 'sweetalert2';
+import useConfig from "../useConfig";
+import { Config } from "../../server/config";
 
 export default function GenPassForm(): React.ReactElement {
   const { register, setValue, handleSubmit, formState: { errors }, getValues, reset } = useForm<IPassword>({
@@ -17,10 +18,10 @@ export default function GenPassForm(): React.ReactElement {
   const [viewPassword, setViewPassword] = React.useState<boolean>(false);
   const [dateInDays, setDateInDays] = React.useState<number>(0);
   const [isGeneratePass, setIsGeneratePass] = React.useState<boolean>(false);
-
+  const config = useConfig();
   const onSubmit = handleSubmit((data) => {
     data.valid_until = dateInDays;
-    submitFormHandler(data, reset) 
+    submitFormHandler(data, reset, config) 
   });
   
  
@@ -117,7 +118,7 @@ export default function GenPassForm(): React.ReactElement {
   );
 }
 
-const submitFormHandler = async (data: IPassword, reset: UseFormReset<IPassword>) => {
+const submitFormHandler = async (data: IPassword, reset: UseFormReset<IPassword>, config: Config) => {
   Swal.showLoading();
   setPassword(data, config.app.API_URL).then((res) => {
     const html = `<a className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="${config.app.URL}/password/${res.id}">${config.app.URL}/password/${res.id}</a>`;

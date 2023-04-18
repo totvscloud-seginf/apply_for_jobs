@@ -23,6 +23,9 @@ provider:
           Resource: "arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
 
 custom:
+  pythonRequirements:
+    dockerizePip: non-linux
+
   dynamodb:
     stages:
       - dev
@@ -48,6 +51,13 @@ package:
     - node_modules/**
     - .pytest_cache/**
     - .dynamodb/**
+    - .serverless/**
+    - .venv/**
+    - __pycache__/**
+    - .env.example
+    - .env
+    - requirements.txt
+
 
 plugins:
   - serverless-python-requirements

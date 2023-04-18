@@ -16,7 +16,6 @@ import App from "../App";
 
 const config = (window as any).__CONFIG__ as Config;
 delete (window as any).__CONFIG__;
-console.log(config)
 /** Components added here will _only_ be loaded in the web browser, never for server-side rendering */
 const render = () => {
   hydrate(

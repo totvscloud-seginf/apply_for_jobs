@@ -1,3 +1,8 @@
 node_modules
 .serverless
 .webpack
+dist/*.js
+dist/*.map
+dist/*.ico
+dist/*.css
+dist/*.txt

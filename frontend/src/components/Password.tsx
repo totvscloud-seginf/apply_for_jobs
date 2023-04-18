@@ -1,7 +1,7 @@
 import React from 'react';
 import { requestPassword } from '../../app/api/requestPassword';
-import config from '../server/config';
 import Swal from 'sweetalert2';
+import useConfig from './useConfig';
 
 interface IPasswordProps {
     id: string;
@@ -26,6 +26,7 @@ export default function Password({ id }: IPasswordProps) : React.ReactElement {
     const [expTime, setExpTime] = React.useState<string | number>("");
 
     if(password === "" && loading) {
+        const config = useConfig()
         requestPassword(id, config.app.API_URL).then((res) => {
             setLoading(false);
             setPassword(res.password);
