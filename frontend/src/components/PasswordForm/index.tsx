@@ -7,7 +7,13 @@ import config from "../../server/config";
 import Swal from 'sweetalert2';
 
 export default function GenPassForm(): React.ReactElement {
-  const { register, setValue, handleSubmit, formState: { errors }, getValues, reset } = useForm<IPassword>();
+  const { register, setValue, handleSubmit, formState: { errors }, getValues, reset } = useForm<IPassword>({
+    defaultValues: {
+      password: "",
+      valid_until: 0,
+      view_limit: 2,
+    },
+  });
   const [viewPassword, setViewPassword] = React.useState<boolean>(false);
   const [dateInDays, setDateInDays] = React.useState<number>(0);
   const [isGeneratePass, setIsGeneratePass] = React.useState<boolean>(false);
@@ -81,21 +87,14 @@ export default function GenPassForm(): React.ReactElement {
           invalid:border-pink-500 invalid:text-pink-600
           focus:invalid:border-pink-500 focus:invalid:ring-pink-500"
           type="number"
-          value={getValues("view_limit")}
+          min="1"
           {...register("view_limit", {
             required: true,
             validate: (value) => {
               return value > 0;
             },
             min: 1,
-            value: 2,
             valueAsNumber: true,
-            onChange: (value) => {
-              if(!value) return null;
-              if(value.target.value < 1) {
-                setValue("view_limit", 1);
-              }
-            }
           })} 
         />
       </div>
@@ -107,7 +106,7 @@ export default function GenPassForm(): React.ReactElement {
             checked={isGeneratePass}
           />
         </label>
-        {isGeneratePass ? ( <GenPassOptions setValue={setValue} /> ) : null}
+        {isGeneratePass ? ( <GenPassOptions setValue={setValue} /> ) : ''}
       </div>
       
       <input 
