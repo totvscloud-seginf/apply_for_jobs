@@ -34,8 +34,6 @@ class PasswordUseCase:
             # if error, delete password and raise exception
             self.delete_password(password)
             raise PasswordNotFoundError(id)
-        except Exception as e:
-            raise e
 
         return password
 

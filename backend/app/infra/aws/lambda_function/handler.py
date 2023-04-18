@@ -1,4 +1,4 @@
-import json, logging
+import json
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -6,6 +6,7 @@ from app.domain.entities.password import Password
 import app.domain.use_cases.password_use_case as use_cases
 from app.adapters.controllers.password_controller import PasswordController
 from app.infra.aws.dynamodb.dynamodb_password_repository import DynamoDBPasswordRepository
+from app.domain.exceptions.base_error import BaseError
 
 load_dotenv()
 repository = DynamoDBPasswordRepository()
@@ -36,14 +37,6 @@ def set_password(event, context) -> dict:
             'body': json.dumps( response.__dict__, default=str )
         }
     except:
-        logging.error(
-            'Invalid password', 
-            exc_info=True, 
-            stack_info=True, 
-            extra={
-                'password': password.password
-            }
-        )
         return {
             'statusCode': 400,
             'body': json.dumps({'message': 'Invalid password'})
@@ -71,48 +64,10 @@ def get_password(event, context) -> dict:
             'statusCode': 200, # Return a HTTP 200 status code
             'body': json.dumps( response.__dict__, default=str ) if type(response) == Password else response # Return the password in JSON format
         }
-    except Exception as e:
-        logging.error(
-            'Password not found',
-            exc_info=True,
-            stack_info=True,
-            extra={
-                'id': id
-            }
-        )
+    except (Exception, BaseError) as e:
         # If any other error occurs, return a HTTP 404 status code with a message
         return {
             "isBase64Encoded": False,
             'statusCode': 404,
             'body': json.dumps({'message': 'Password not found', 'error': str(e)})
-        }
-
-"""
-This function is called when a DELETE request is made to the /password/{id} endpoint
-"""
-def delete_password(event, context) -> dict:
-    # The id of the password is passed in the path parameters
-    id = event['pathParameters']['id']
-
-    try:
-        # Delete the password with the given id
-        response = controller.delete_password(id)
-        # Return the response with status code 204
-        return {
-            'statusCode': 204,
-            'body': json.dumps(response.__dict__, default=str)
-        }
-    except:
-        logging.error(
-            'Password not found',
-            exc_info=True,
-            stack_info=True,
-            extra={
-                'id': id
-            }
-        )
-        # If the password is not found return status code 404
-        return {
-            'statusCode': 404,
-            'body': json.dumps({'message': 'Password not found'})
         }

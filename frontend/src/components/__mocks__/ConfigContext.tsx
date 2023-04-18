@@ -10,7 +10,9 @@ const ConfigContext = createContext<Config>({
     URL: "http://localhost:3000",
     DIST_URL: "http://localhost:8080",
     PUBLIC_URL: "http://localhost:8080",
+    API_URL: "http://localhost:4000",
   },
+  uuid: null,
 });
 
 export default ConfigContext;

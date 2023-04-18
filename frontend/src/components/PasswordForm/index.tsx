@@ -2,9 +2,8 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import Switch from "react-switch";
 import GenPassOptions from "./genPassOptions";
-import { setPassword } from "app/api/setPassword";
-import { IPassword } from "app/api/setPassword";
-import config from "src/server/config";
+import { setPassword, IPassword } from "../../../app/api/setPassword";
+import config from "../../server/config";
 import Swal from 'sweetalert2';
 
 export default function GenPassForm(): React.ReactElement {
@@ -14,7 +13,7 @@ export default function GenPassForm(): React.ReactElement {
 
   const onSubmit = handleSubmit((data) => {
     data.valid_until = dateInDays;
-    console.log(data);
+    Swal.showLoading();
     setPassword(data, config.app.API_URL).then((res) => {
       const html = `<a className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="${config.app.URL}/password/${res.id}">${config.app.URL}/password/${res.id}</a>`;
       Swal.fire({

@@ -1,6 +1,6 @@
 import React from 'react';
 import { requestPassword } from '../../app/api/requestPassword';
-import config from 'src/server/config';
+import config from '../server/config';
 import Swal from 'sweetalert2';
 
 interface IPasswordProps {
