@@ -64,6 +64,9 @@ Por fim, foi um projeto bem interessante, nunca tinha utilizado o framework serv
     ``` 
 
 3. start project with serverless offline
+
+    > edit the file `backend/.env.example` and rename to `.env`, then run the command below
+
     ```sh
     # create dynamodb table
     sls dynamodb install && sls dynamodb start
