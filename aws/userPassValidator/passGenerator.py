@@ -6,13 +6,12 @@ import string
 class passGen:
     #colocar descricao 
     def __init__(self, PARAMETERS):
-        self._pass = PARAMETERS.password
+        self._pass = PARAMETERS['password']
         #params espera receber uma lista dos parametros definidos
         #assim caso surga um novo parametro sua implementação fica mais simples.
-        self.params = PARAMETERS.params
-        self.viewLimit = PARAMETERS.viewLimit
-        self.lifeTime  = PARAMETERS.lifetime
-        self.passLen   = PARAMETERS.passlen
+        self.params = PARAMETERS['params']
+        self.autopass = PARAMETERS['auto']
+        self.passLen   = self.params['passlen']
         
     def passGen(self):
         #colocar descricao
@@ -26,7 +25,7 @@ class passGen:
                 if parameters == 'espChar':
                     newpass.append(random.choice(string.punctuation))
         
-        return ''.join(passGen)
+        return ''.join(newpass)
     
     #verificar se criar um método no request para realizar encriptação é melhor, para isso ver substituição de valor do objeto
     def passProtect(self, password):
@@ -37,7 +36,7 @@ class passGen:
     
     def getpass(self):
         
-        if self._pass:
+        if self.autopass == 'false':
             return self.passProtect(self._pass)    
         
         return self.passProtect(self.passGen())

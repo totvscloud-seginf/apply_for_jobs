@@ -1,17 +1,28 @@
 import json
-import conn
+from conn import Database
 import base64
-import datetime
-import passGenerator
+from datetime import datetime
+from passGenerator import passGen
 
 class user:
-    def __init__(self, userAUTH):
-        self.user_login = userAUTH.login
-        self.password = userAUTH.password
+    def __init__(self):
+        self.user_login = None
+        self.password = None
+        
+    def do_user_link_gen(self):
+        """Gera o hash do link"""
+        date_now = datetime.now()
+        date_now = date_now.strftime("%d/%m/%Y %H:%M:%S")
+        encode_time = base64.b64encode(date_now.encode("utf-8"))
+        encoded_login = base64.b64encode(self.user_login.encode("utf-8"))
+        userencrypt = {'datetime':  str(encode_time, "utf-8"), 'user':  str(encoded_login, "utf-8")}
+       
+        return userencrypt
     
-    def do_user_login(self):
+    def do_user_login(self, userDATA):
         """Realizar login"""
-        conector = conn()
+        self.user_login = userDATA['login']
+        conector = Database()
         userlogin = conector.user_query(self.user_login)
         if userlogin['result']:
             return userlogin
@@ -28,58 +39,65 @@ class user:
  
     def do_save_new_user(self, newUSERDATA):
         """Salva novo usuário"""
-        conector = conn()  
-        if newUSERDATA['link']:
-            new_link = self.do_user_link_gen()
-            newUSERDATA['currentlink'] = new_link
 
-        if newUSERDATA['auto']:
-            new_pass = passGenerator(self.password)
-            self.password['password'] = new_pass
+        self.user_login = newUSERDATA['login']
+
+        conector = Database() 
+        #novo usuario nunca tera link, mas vou deixar isso por enquanto 
+        if len(newUSERDATA['password']['currentlink']) == 0:
+            new_link = self.do_user_link_gen()
+            acces_link = f"use_key={new_link['user']}&user_x={new_link['datetime']}"
+            newUSERDATA['password']['currentlink'] = acces_link
         
-        saveuser = conector.put_item(self.user_login, self.password)
+        ##protegendo a senha
+        passwrd = newUSERDATA['password']
+        new_pass = passGen(passwrd)
+        
+        newUSERDATA['password']['password'] = new_pass.getpass()
+        
+        #return newUSERDATA['password']
+        
+        saveuser = conector.put_user(self.user_login, newUSERDATA['password'])
         
         return saveuser
         
-    def do_user_link_gen(self):
-        """Gera o hash do link"""
-        epoch_now = int(datetime.datetime.now().timestamp())
-        encode_time = base64.b64encode(epoch_now.encode("utf-8"))
-        userlogin = self.user_login
-        encoded_login = base64.b64encode(userlogin.encode("utf-8"))
-        userencrypt = {'datetime':  str(encode_time, "utf-8"), 'user':  str(encoded_login, "utf-8")}
-       
-        return userencrypt
-        
-    def do_user_password_view(self, link):
+    def do_user_password_view(self, password):
         """Aqui define se o usuário pode ou não logar com o link de acesso"""
-        conector = conn()  
-        passcountview = conector.user_query(self.user_login)
+        conector = Database()
         epoch_now = int(datetime.datetime.now().timestamp())
-        if epoch_now > passcountview.passlifetime:
+
+        if epoch_now > password['passlifetime']:
             return {'result': 'WARNING', 'err_code': '0', 'data': 'O link não é mais válido'}
         
-        if link != passcountview.currentlink:
-              return {'result': 'WARNING', 'err_code': '0', 'data': 'O link não é mais válido'}
-        
-        limitview = int(passcountview.passlimitview)
+        limitview = password['passlimitview']
         if limitview == 0:                
             return {'result': 'WARNING', 'err_code': '0', 'data': 'O limite de visualização foi atingido'}
         
-        conector.update_userpass_limitview(passcountview.userid, passcountview.passid, limitview-1)
-        #Se tudo certo realiza login
-        self.do_user_login()
-        
+        return conector.update_userpass_limitview( password['userid'], password['passid'], limitview-1)
+               
     def do_user_add_newpass(self, newpass):
-        conector = conn() 
+        conector = Database()
         userlogin = conector.user_query(self.user_login)
         if newpass['auto']:
-            new_pass = passGenerator(newpass)
+            new_pass = passGen(newpass)
             self.password['password'] = new_pass            
         else:
             self.password['password'] = new_pass
 
-        conector.add_new_pass(userlogin.userid, self.password)
-
+        conector.add_new_pass(userlogin['userid'], self.password)
+     
+    def do_user_get_link(self, userDATA):
+        #Busca o link para acesso
+        conector = Database()
+        self.user_login = userDATA['login']
         
-    
+        #cruar um novo metodo exclusivo para consulta do link
+        response = conector.user_query(self.user_login)
+        #atualizando informacao do passwordview
+        
+        viewCheck = self.do_user_password_view(response)
+
+        if viewCheck['result'] != 'OK' :
+            response = viewCheck
+
+        return response

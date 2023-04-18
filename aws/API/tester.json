@@ -1,0 +1,15 @@
+{
+    "login": "ciclano_fulano@gmail.com",
+    "password": {"password":"xpto_123",
+                 "auto": "false",
+                 "passlimitview":"3",
+                 "passlifetime":"100",
+                 "currentlink": "",
+                 "params": {
+                            "passlen":"",
+                            "numbers": "",
+                            "letter": "",
+                            "espChar": ""
+                            }
+                } 
+}
