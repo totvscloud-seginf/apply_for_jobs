@@ -19,5 +19,16 @@ paths:
         httpMethod: "POST"
         uri: "arn:aws:apigateway:sa-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:sa-east-1:099529297084:function:userPassValidator/invocations"
         connectionType: "INTERNET"
+  /do_user_login:
+    x-amazon-apigateway-any-method:
+      responses:
+        default:
+          description: "Default response for ANY /userPassValidator/do_user_login"
+      x-amazon-apigateway-integration:
+        payloadFormatVersion: "2.0"
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri: "arn:aws:apigateway:sa-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:sa-east-1:099529297084:function:userPassValidator:user.py/do_user_login/invocations"
+        connectionType: "INTERNET"
 x-amazon-apigateway-importexport-version: "1.0"
 

@@ -5,12 +5,13 @@ import datetime
 import passGenerator
 
 class user:
-    def __init__(self, userAUTH):
-        self.user_login = userAUTH.login
-        self.password = userAUTH.password
+    def __init__(self):
+        self.user_login = None
+        self.password = None
     
-    def do_user_login(self):
+    def do_user_login(self, userDATA):
         """Realizar login"""
+        self.user_login = userDATA['login']
         conector = conn()
         userlogin = conector.user_query(self.user_login)
         if userlogin['result']:
@@ -34,8 +35,9 @@ class user:
             newUSERDATA['currentlink'] = new_link
 
         if newUSERDATA['auto']:
-            new_pass = passGenerator(self.password)
-            self.password['password'] = new_pass
+            new_pass = passGenerator(newUSERDATA['password'])
+            newUSERDATA['password'] = new_pass
+            
         
         saveuser = conector.put_item(self.user_login, self.password)
         
