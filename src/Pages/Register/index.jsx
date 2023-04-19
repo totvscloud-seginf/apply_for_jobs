@@ -175,7 +175,7 @@ const Register = () => {
                                         
                                           axios.request(config)
                                           .then((response) => {
-                                            console.log(JSON.stringify(response.data));
+                                            console.log(JSON.parse(response.data))
                                           })
                                           .catch((error) => {
                                             console.log(error);
