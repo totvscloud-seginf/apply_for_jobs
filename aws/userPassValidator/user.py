@@ -22,20 +22,25 @@ class user:
     def do_user_login(self, userDATA):
         """Realizar login"""
         self.user_login = userDATA['login']
+        userDATA['password']['auto'] = 'false'
+        _pass = passGen(userDATA['password']) 
+        self.password = _pass.getpass()
         conector = Database()
-        userlogin = conector.user_query(self.user_login)
-        if userlogin['result']:
-            return userlogin
-
-        if userlogin['password'] == base64.b64encode(self.password.encode("utf-8")):
-                return {'result': 'ERROR', 'err_code': 3000, 'data': "Password inválido"}
-
-        epoch_now = int(datetime.datetime.now().timestamp())
         
-        if userlogin['passlifetime'] < epoch_now:
-            return {'result': 'ERROR', 'err_code': 4000, 'data': "Esse password expirou, é necessário gerar um novo"}
+        epoch_now = int(datetime.now().timestamp())
         
-        return {'result': 'OK', 'err_code': 0, 'data': "Logado com sucesso"}
+        query = conector.user_login(self.user_login,  self.password)
+        
+        for login_info in query:
+            if 'result' in login_info:
+                return login_info
+            if login_info['passlifetime'] < epoch_now:
+                return {'result': 'FAIL', 'err_code': 7440, 'data': 'Sua senha expirou, gere uma nova senha'}
+            if login_info['passtatus'] == 0:
+                return {'result': 'FAIL', 'err_code': 7340, 'data': 'Sua senha não é mais válida'}
+            
+        return {'result': 'OK', 'err_code': 0, 'data': 'Logado com sucesso'}
+         
  
     def do_save_new_user(self, newUSERDATA):
         """Salva novo usuário"""
@@ -64,40 +69,74 @@ class user:
     def do_user_password_view(self, password):
         """Aqui define se o usuário pode ou não logar com o link de acesso"""
         conector = Database()
-        epoch_now = int(datetime.datetime.now().timestamp())
+        epoch_now = int(datetime.now().timestamp())
 
+        if password['passlimitview'] == 0:
+            conector.update_password_status(password['userid'], password['passid'])
+            return {'result': 'WARNING', 'err_code': '440', 'data': 'O link não é mais válido'}
+                
         if epoch_now > password['passlifetime']:
+            conector.update_password_status(password['userid'], password['passid'])
             return {'result': 'WARNING', 'err_code': '0', 'data': 'O link não é mais válido'}
         
         limitview = password['passlimitview']
-        if limitview == 0:                
+        
+        if limitview == 0:
+            conector.update_password_status(password['userid'], password['passid'])
             return {'result': 'WARNING', 'err_code': '0', 'data': 'O limite de visualização foi atingido'}
         
-        return conector.update_userpass_limitview( password['userid'], password['passid'], limitview-1)
+        return conector.update_userpass_limitview(password['userid'], password['passid'], limitview-1)
                
-    def do_user_add_newpass(self, newpass):
+    def do_user_add_newpass(self, userDATA):
         conector = Database()
-        userlogin = conector.user_query(self.user_login)
-        if newpass['auto']:
-            new_pass = passGen(newpass)
-            self.password['password'] = new_pass            
-        else:
-            self.password['password'] = new_pass
+        self.user_login = userDATA['login']
+       
+        self.password = passGen(userDATA['password']) 
+        userDATA['password']['password'] = self.password.getpass()
 
-        conector.add_new_pass(userlogin['userid'], self.password)
-     
+        return conector.add_new_pass(self.user_login, userDATA['password'])
+
     def do_user_get_link(self, userDATA):
         #Busca o link para acesso
         conector = Database()
         self.user_login = userDATA['login']
         
-        #cruar um novo metodo exclusivo para consulta do link
-        response = conector.user_query(self.user_login)
+        query = conector.user_query(self.user_login)
+        
         #atualizando informacao do passwordview
         
-        viewCheck = self.do_user_password_view(response)
-
-        if viewCheck['result'] != 'OK' :
-            response = viewCheck
-
-        return response
+        for pass_list in query:
+            if pass_list['passtatus'] != 0:
+                return pass_list         
+        
+        return {'result': 'WARNING', 'err_code': '7330', 'data': 'Não há links válidos, gere um novo passowrd'}
+        
+        
+    def do_user_use_link(self, userDATA):
+        #Busca o link para acesso
+        conector = Database()
+        self.user_login = userDATA['login']
+        
+        url = userDATA['password']['url']
+        #cruar um novo metodo exclusivo para consulta do link
+        query = conector.user_query(self.user_login)
+        response = {}
+        for pass_list in query:
+            if 'currentlink' in pass_list:
+                if pass_list['currentlink'] == url and pass_list['passtatus'] != 0:
+                    viewCheck = self.do_user_password_view(pass_list)
+                    if 'result' in pass_list:
+                        if viewCheck['result'] != 'OK' :
+                            response = viewCheck
+                        else:
+                            response = pass_list
+                    else:
+                        response = pass_list
+                else:
+                    conector.update_password_status(pass_list['userid'], pass_list['passid'])
+                    return {'result': 'WARNING', 'err_code': '330', 'data': 'O link não é mais válido'}
+            else:
+                response = pass_list
+        #atualizando informacao do passwordview
+        
+        return response 
