@@ -17,7 +17,8 @@ import {
     Stack,
     Checkbox,
     Typography,
-    FormControlLabel 
+    FormControlLabel,
+    Modal 
 } from '@mui/material';
 
 // third party
@@ -37,10 +38,19 @@ import { Directions, Visibility, VisibilityOff } from '@mui/icons-material';
 const Register = () => {
     const [level, setLevel] = useState();
     const [showFields, setShowFields] = useState(false)
+    const [linkHref, setLinkHref] = useState({  
+                                                id: 0,
+                                                response: {},
+                                                link: '' 
+                                            })
     const [showPassword, setShowPassword] = useState(false);
     const [autoPassword, setAutoPassword] = useState(false);
     const [showPassInput, setshowPassInput] = useState('');
     const [dataRequestType, setDataRequestType] = useState('');
+    const [open, setOpen] = useState(false);
+    const [linkRecoverTitle, setlinkRecoverTitle] = useState('')
+    const [RespData, setRespData] = useState({})
+    const [linkRecoverText, setlinkRecoverText] = useState('')
     const [autoPass, setAutoPass] = useState({
                                             number: false,
                                             letter: false,
@@ -48,7 +58,13 @@ const Register = () => {
                                             passlength: ''
                                           })
     const [btnLabel, setBtnLabel] = useState('Salvar senha')
-
+    
+     
+    const handleClose = () => {
+        setOpen(false);
+        
+      };
+ 
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword);
     };
@@ -100,6 +116,16 @@ const Register = () => {
 
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
     
+    async function request(params) {
+        return await axios.request(params)
+        .then((response) => {
+          return response.data
+        })
+        .catch((error) => {
+          alert('Erro no request '+error);
+          throw error;
+        });
+    }
     
 
     return (
@@ -147,22 +173,12 @@ const Register = () => {
                                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                                     try {
                                         let _url
-                                        if (dataRequestType === "do_user_get_link") {
-                                            values.password.auto = 'false'
-                                            _url = "https://z2jytnr0a7.execute-api.sa-east-1.amazonaws.com/default/userPassValidator/do_user_set_new_pass";
-                                            
-                                        } else {
-                                            _url = "https://my-api/update-user";
-                                        }
-
                                         let config = {
                                             method: 'post',
                                             maxBodyLength: Infinity,
-                                            url: _url,
+                                            url: ``,
                                             headers: { 
                                               'Acess-Control-Allow-Origin' : '*',
-                                              'Access-Control-Request-Method' : 'POST, GET, OPTIONS',
-                                              'Access-Control-Request-Headers' : 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                                               'Content-Type': 'application/json', 
                                               'X-Amz-Content-Sha256': 'beaead3198f7da1e70d03ab969765e0821b24fc913697e929e726aeaebf0eba3', 
                                               'X-Amz-Date': '20230419T163422Z', 
@@ -171,16 +187,46 @@ const Register = () => {
                                             data : values
                                           };
                                           
+                                        if (dataRequestType === "do_user_get_link") {
+                                            values.password.auto = 'false'
+                                            _url = "https://z2jytnr0a7.execute-api.sa-east-1.amazonaws.com/default/userPassValidator/do_user_set_new_pass";
+                                            config.url = _url
+                                            request(config).then((data) => {
+                                                
+                                                if ('result' in data.resp){
+                                                    const result = data.resp['result']
+                                                    if(result !== 'OK'){
+                                                        setlinkRecoverTitle('Recuperação da senha falhou!')
+                                                        setlinkRecoverText(data.resp.data)
+                                                        setOpen(true)
+                                                        setShowFields(!showFields) 
+                                                        return
+                                                    }
+                                                }
+                                                
+                                                const link_gen = 'https://z2jytnr0a7.execute-api.sa-east-1.amazonaws.com/default/userPassValidator/'+data.resp.currentlink
+                                                setlinkRecoverTitle('Recuperaçao da senha')
+                                                setlinkRecoverText('Para visualizar a senha clique aqui')
 
+                                                setLinkHref({
+                                                        id: 1,
+                                                        response: data.resp,
+                                                        link: link_gen
+                                                    })
+                                                setOpen(true)                                               
+                                            });
+
+                                            
+                                            
+                                            
+                                        } else {
+                                            _url = "https://my-api/update-user";
+                                        }
+
+                                       
                                         
-                                          axios.request(config)
-                                          .then((response) => {
-                                            console.log(JSON.parse(response.data))
-                                          })
-                                          .catch((error) => {
-                                            console.log(error);
-                                          });
-
+                                        
+                                         
                                         setStatus({ success: false });
                                         setSubmitting(false);
                                     } catch (err) {
@@ -193,7 +239,30 @@ const Register = () => {
                             >
                                 {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
                                     <form noValidate onSubmit={handleSubmit}>
-                                        <Grid container spacing={3}>                                              
+                                        <Grid container spacing={3}>
+                                            <Modal open={open}
+                                                onClose={handleClose}
+                                                aria-labelledby="child-modal-title"
+                                                aria-describedby="child-modal-description"
+                                            >
+                                                <Box sx={{position: 'absolute',
+                                                            top: '50%',
+                                                            left: '50%',
+                                                            transform: 'translate(-50%, -50%)',
+                                                            width: 400,
+                                                            bgcolor: 'background.paper',
+                                                            border: 'none',
+                                                            borderRadius: '25px',
+                                                            boxShadow: 24,
+                                                            p: 4}}>
+                                                    <Typography id="modal-modal-title" variant="h6" component="h2">
+                                                        {linkRecoverTitle}
+                                                    </Typography>
+                                                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                                                       <RouterLink  to={{pathname : "/passview"}} state={{linkHref}} variant='link_recover' underline='hover'>{linkRecoverText}</RouterLink>
+                                                    </Typography>
+                                                </Box>
+                                            </Modal>                                              
                                             <Grid item xs={12}>
                                                 <Stack spacing={1}>
                                                     <InputLabel htmlFor="email-signup">Digite seu Email</InputLabel>
@@ -231,7 +300,7 @@ const Register = () => {
                                                             variant="contained"
                                                             color="primary"
                                                             onClick={handleType}
-                                                            dataRequest = 'do_user_get_link'
+                                                            datarequest = 'do_user_get_link'
                                                         >
                                                             Recuperar senha
                                                         </Button>
