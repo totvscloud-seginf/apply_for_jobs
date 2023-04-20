@@ -36,11 +36,8 @@ class Database:
         """ Metodo para realizar login
         """
         
-        pass_ = password
         user_id = self.get_hash_id(login)
-        hash_object = hashlib.md5(str(pass_).encode())
-        hash_hex = hash_object.hexdigest()
-        pass_id = hash_hex
+        pass_id = self.get_hash_id(password)
         
         user_response = self.userTable.query(
             KeyConditionExpression='userid = :userid and login = :login',
@@ -100,24 +97,17 @@ class Database:
                 'login' : str(user)
             }
           
-            
-            pass_ = password['password']
-            
+            pass_id = self.get_hash_id(password['password'])
            
-            
-            hash_object = hashlib.md5(str(pass_).encode())
-            hash_hex = hash_object.hexdigest()
-            pass_id = hash_hex
-            
             
             userpass_item = {
                 'passid': pass_id,
                 'userid': user_id,
-                'password': str(base64.b64encode(password['password'].encode("utf-8"))),
+                'password': base64.b64encode(password['password'].encode("utf-8")).decode("utf-8"),
                 'passlifetime': int(passlifetime),
                 'passlimitview': int(password['passlimitview']),
                 'currentlink': str(password['currentlink']),
-                'passtatus' : int(1)
+                'passtatus' : 1
             }
             
             self.userTable.put_item(Item=_user)
@@ -149,18 +139,15 @@ class Database:
                     pass_check['exists_valid_pass'] = 'True'
                     return pass_check
             
-            pass_ = password['password']
-            
-            hash_object = hashlib.md5(str(pass_).encode())
-            hash_hex = hash_object.hexdigest()
-            pass_id = hash_hex
+            pass_id = self.get_hash_id(password['password'])
             
             passlifetime = self.calculate_passlifetime(int(password['passlifetime']))
             
             userpass_item = {
                 'passid': pass_id,
                 'userid': user,
-                'password': str(base64.b64encode(password['password'].encode("utf-8"))),
+                
+                'password': base64.b64encode(password['password'].encode('ascii')).decode('ascii'),
                 'passlifetime': int(passlifetime),
                 'passlimitview': int(password['passlimitview']),
                 'currentlink': str(password['currentlink']),
@@ -246,6 +233,7 @@ class Database:
         )
         
         userpass_items = []
+        
         for items in userpass_response['Items']:
             item_dict = {
                 'passid': items['passid'],

@@ -16,21 +16,26 @@ class passGen:
     def passGen(self):
         #colocar descricao
         newpass = []
-        for i in range(self.passlen):
+        
+        for i in range(int(self.passLen)):
             for parameters in self.params:
+               
                 if parameters == 'numbers':
-                    newpass.append(random.choice(string.digits))
+                    if self.params['numbers'] == True:
+                        newpass.append(random.choice(string.digits))
                 if parameters == 'letter':
-                    newpass.append(random.choice(string.ascii_letters))
+                    if self.params['letter'] == True:
+                        newpass.append(random.choice(string.ascii_letters))
                 if parameters == 'espChar':
-                    newpass.append(random.choice(string.punctuation))
+                    if self.params['espChar'] == True:
+                        newpass.append(random.choice(string.punctuation))
         
         return ''.join(newpass)
     
     #verificar se criar um método no request para realizar encriptação é melhor, para isso ver substituição de valor do objeto
     def passProtect(self, password):
-        encoded_bytes = base64.b64encode(password.encode("utf-8"))
-        passprotected = str(encoded_bytes, "utf-8")
+        encoded_bytes = base64.b64encode(password.encode("ascii"))
+        passprotected = str(encoded_bytes, "ascii")
         
         return passprotected
     

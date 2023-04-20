@@ -57,11 +57,15 @@ const Login = () => {
                     direction="row" 
                     justifyContent="space-around"
                 >
+                    
                     <Grid container xs={8} lg={4} spacing={4} 
                             sx={{
                                 boxShadow: 'rgba(0, 0, 0, 0.15) 0px 2px 8px'
                             }}
                         >
+                            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                                                        LOGIN 
+                            </Typography>
                         <Grid item xs={11} lg={11} 
                              >
                             <Formik
@@ -148,6 +152,9 @@ const Login = () => {
                                                 <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
                                                    
                                                     <Link variant="h6" component={RouterLink} to='./register' color="text.primary" fontSize={15}>
+                                                        Cadastre-se
+                                                    </Link>
+                                                    <Link variant="h6" component={RouterLink} to='./passrecover' color="text.primary" fontSize={15}>
                                                         Esqueceu a senha?
                                                     </Link>
                                                 </Stack>

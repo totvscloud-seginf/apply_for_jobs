@@ -39,7 +39,7 @@ class user:
             if login_info['passtatus'] == 0:
                 return {'result': 'FAIL', 'err_code': 7340, 'data': 'Sua senha não é mais válida'}
             
-        return {'result': 'OK', 'err_code': 0, 'data': 'Logado com sucesso'}
+        return {'result': 'OK', 'err_code': 0, 'data': 'Logado com sucesso!'}
          
  
     def do_save_new_user(self, newUSERDATA):
@@ -63,7 +63,13 @@ class user:
         #return newUSERDATA['password']
         
         saveuser = conector.put_user(self.user_login, newUSERDATA['password'])
-        
+        if newUSERDATA['password']['auto'] == 'true':
+            base64_bytes = newUSERDATA['password']['password'].encode('ascii')
+            message_bytes = base64.b64decode(base64_bytes)
+            pass_genereted = message_bytes.decode('ascii')
+            
+            saveuser['auto_password'] = pass_genereted
+            
         return saveuser
         
     def do_user_password_view(self, password):
@@ -90,7 +96,10 @@ class user:
     def do_user_add_newpass(self, userDATA):
         conector = Database()
         self.user_login = userDATA['login']
-       
+        new_link = self.do_user_link_gen()
+        acces_link = f"use_key={new_link['user']}&user_x={new_link['datetime']}"
+        userDATA['password']['currentlink'] = acces_link
+        
         self.password = passGen(userDATA['password']) 
         userDATA['password']['password'] = self.password.getpass()
 
@@ -118,12 +127,30 @@ class user:
         self.user_login = userDATA['login']
         
         url = userDATA['password']['url']
-        #cruar um novo metodo exclusivo para consulta do link
+        
         query = conector.user_query(self.user_login)
         response = {}
+        
+        check_query_len = len(query)
+       
+        
         for pass_list in query:
+            
+            base64_bytes = pass_list['password'].encode('ascii')
+            message_bytes = base64.b64decode(base64_bytes)
+            message = message_bytes.decode('ascii')
+            
+            base64_bytes = message.encode('ascii')
+            message_bytes = base64.b64decode(base64_bytes)
+            message = message_bytes.decode('ascii')
+            
+            pass_list['password'] = message
+            print(check_query_len)
             if 'currentlink' in pass_list:
+                
                 if pass_list['currentlink'] == url and pass_list['passtatus'] != 0:
+                    print(pass_list['currentlink'])
+                    print(pass_list['passtatus'])
                     viewCheck = self.do_user_password_view(pass_list)
                     if 'result' in pass_list:
                         if viewCheck['result'] != 'OK' :
@@ -133,8 +160,11 @@ class user:
                     else:
                         response = pass_list
                 else:
-                    conector.update_password_status(pass_list['userid'], pass_list['passid'])
-                    return {'result': 'WARNING', 'err_code': '330', 'data': 'O link não é mais válido'}
+                    if check_query_len == 1:
+                        conector.update_password_status(pass_list['userid'], pass_list['passid'])
+                        return {'result': 'WARNING', 'err_code': '330', 'data': 'O link não é mais válido'}
+                    else:
+                        check_query_len = check_query_len-1
             else:
                 response = pass_list
         #atualizando informacao do passwordview
