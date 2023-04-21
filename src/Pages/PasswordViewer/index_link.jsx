@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useLocation, Link as RouterLink  } from 'react-router-dom';
+import { useParams, Link as RouterLink  } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import useRequest from '../../hooks/request';
 // material-ui
@@ -25,19 +25,31 @@ import {
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 
-const PassViewer = ( ) => {
-
+const PassViewerLink = ( ) => {
+    const teste = useParams()
     
     const [showPassword, setShowPassword] = useState(false);
 
-    const location = useLocation()
-    const { data, loading, error, makeRequest } = useRequest();
-    const { state } = location
-    const {linkHref} = state
-    const {link, login} = linkHref
-    console.log(linkHref)
     
-    //states
+    const { makeRequest } = useRequest();
+    
+    const link_params = new URLSearchParams(teste.currlink)
+    
+    const linkHref = {}
+    for (const [key, value] of link_params){
+        if (key === 'link'){
+            linkHref[key] = decodeURIComponent(escape(window.atob(value)));
+        }
+        else{
+            linkHref[key] = value
+        }
+        
+    }
+    
+    
+    const {link, login} = linkHref
+    
+
     const [open, setOpen] = useState(false);
     const [mensagem, setMensagem ] = useState('')
     const [passValue, setpassValue] = useState('')
@@ -217,4 +229,4 @@ const PassViewer = ( ) => {
     );
 };
 
-export default PassViewer;
+export default PassViewerLink;

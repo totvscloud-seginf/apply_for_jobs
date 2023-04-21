@@ -21,6 +21,7 @@ class user:
     
     def do_user_login(self, userDATA):
         """Realizar login"""
+        
         self.user_login = userDATA['login']
         userDATA['password']['auto'] = 'false'
         _pass = passGen(userDATA['password']) 
@@ -31,6 +32,9 @@ class user:
         
         query = conector.user_login(self.user_login,  self.password)
         
+        if len(query) < 1:
+            return {'result': 'FAIL', 'err_code': 7440, 'data': 'Login ou senha inválido'}
+            
         for login_info in query:
             if 'result' in login_info:
                 return login_info
@@ -102,8 +106,19 @@ class user:
         
         self.password = passGen(userDATA['password']) 
         userDATA['password']['password'] = self.password.getpass()
-
-        return conector.add_new_pass(self.user_login, userDATA['password'])
+        
+        
+        saved_pass = conector.add_new_pass(self.user_login, userDATA['password'])
+        
+        if userDATA['password']['auto'] == 'true':
+            base64_bytes = newUSERDATA['password']['password'].encode('ascii')
+            message_bytes = base64.b64decode(base64_bytes)
+            pass_genereted = message_bytes.decode('ascii')
+            
+            saved_pass['auto_password'] = pass_genereted
+            
+            
+        return saved_pass
 
     def do_user_get_link(self, userDATA):
         #Busca o link para acesso

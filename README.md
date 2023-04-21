@@ -1,68 +1,95 @@
 # Avaliação de conhecimentos em Desenvolvimento de Software
 
-## Considere a seguinte necessidade:
+## Considerações sobre o projeto Philipe Couto:
  
-Precisamos enviar uma senha de maneira segura para um cliente. Para isso, ao invés de encaminhá-la via E-mail, SMS, Slack, etc, foi dado como solução o desenvolvimento de um sistema com as seguintes funções:
+Esse é meu projeto concluido do desafio da Totvs.
+### Diagrama
+![Aqui está o diagrama do projeto](./Totvs-PassRec.drawio.svg) 
+
+
+
+## Explicações
+
+
+
+Para o backend eu escolhi utilizar python por estar mais familizarizado com a lingaugem.
+
+A estrutura conta com a pasta AWS que contem as classes utilizadas dento do AWS lambda para resolução.
+
+Dentro da estruta estão contidos:
+ - request.py* - que é a função main do AWS Lambda, aqui o há os endpoints de para cada uma das requisições que são realizadas pelo front-end, passando pelo API Gateway onde há um proxy que recebe a variação dos links
+
+ *Por falta de prática com o AWS não consegui resolver de outra forma, além de não conseguir criar o mecanismo para resolver o erro de CORS
+
+ - user.py - Nesse arquivo está a classe user que resolve todos os pontos do desafio é apartir dessa classe que os dados são validados pelo backend e retornados ao front-end e é dentro dessa classe que é realizada a chamada no arquivo passGenerator.py que contem a classe passGen.
+
+- passGenerator.py - Nesse arquivo está contida a classe passGen
+
+- conn.py - Nesse arquivo está a classe Database que realiza as operações dentro do DynamoDB, aqui o sistema valida as requisições do ponto de vista de banco de dados, como validar existencia de senha repetida, se existe ou não usuário e retorna caso tudo esteja correto.
+
+ - ### PASSGEN
+   - É aqui que é resolvido a geração automática de password e a codificação do password antes de enviar para o banco de dados
+
+- ### VALIDAÇÕES
+   - Na classe user.py há validações que verificam se o password já expirou ou se há visualizações disponíveis, para resolver questões gerais de tempo eu defini que as datas devem ser convertidas em epoch
+   - Caso a senha já tenha sido expirada ou não tenha mais visualizações liberadas, ela <strong>não</strong> removida da base, eu optei por isso para poder evitar que o usuário preencha uma senha repetida e isso poderia causar problemas de integridade dos dados, por esse motivo eu decidi marcar o password como inativo.
+   - As validações de tempo e visualização são executadas paralelamente, assim caso uma das condições não esteja válida o sistema retorna que a senha expirou.
+
+## Demostração das requisições e respostas
+ Aqui eu decidi colocar um exemplo da estrutura json de requisição
+
+``` 
+json = {login: '',
+            password: {
+                        password: '',
+                        auto: '',
+                        passlimitview: '',
+                        passlifetime: '',
+                        currentlink: '',
+                        params: {
+                                passlen: '',
+                                numbers: '',
+                                letter: '',
+                                espChar: ''
+                        }
+                    }
+        }
+```
+
+### Demonstração da estrutura do banco de dados DynamoDB
+ - tabela users:
+    ```
+       _user = {
+                'userid': int(value),
+                'login' : str(user)
+            }
+    ```
+ - tabela userpass:
+   ```
+       userpass_item = {
+                'passid': int(value),
+                'userid': userid,
+                'password': str(decoded(pass))
+                'passlifetime': int(passlifetime),
+                'passlimitview': int(passlimitview),
+                'currentlink': str(currentlink),
+                'passtatus' : 1
+            }
+   ```
+
+
+# Considerações
+
+Nesse projeto eu compreendi que o usuário pode ou não ser uma pessoa que usa o login, de qualquer forma eu defini que para <strong>TODOS</strong> deve sempre haver um login. Pensando em um sistema não fazia muito sentido para mim recuperar senha sem que tivesse um login.
+
+Considerei que todas as senhas poderiam ser informação relevante, porntando julguei prudente sempre mante-las no banco de dados, assim evitando que o usuário repita a senha que ao meu ver tenta mitigar problema com senha roubada.
+
+--O projeto não sofreu build--
+
+# Execução
  
-1- Usuário irá inserir uma <strong>senha</strong> ou solicitar ao Sistema para gerar <strong>senha aleatória</strong> baseada em <strong>políticas de complexidade</strong> (tipo de caracteres, números, letras, tamanho, etc); 
-- **Exemplo1**: o usuário digita sua senha no campo de texto;
-- **Exemplo2**: o usuário seleciona os parametros de complexidade de senha e ao clicar no botão "Gerar Senha" irá obter uma senha aleatória;
+``` 
+npm start run
+```
 
-2- Usuário irá especificar <strong>quantas vezes</strong> a senha gerada poderá ser vista e <strong>qual o tempo</strong> que a senha ficará válida;
-- **Exemplo**: o usuário irá especificar que a senha possa ser vista apenas <em>duas vezes</em> pelo prazo de <em>um dia</em>;
 
-3- O sistema irá <strong>gerar uma URL</strong> que dá acesso a visualização da senha, baseando-se nos critérios do item 02;
-- **Exemplo**: o usuário enviará a URL para que o cliente possa visualizar a senha;
-
-4- Após atingir a quantidade de visualizações ou o tempo disponível, o sistema <strong>bloqueia/elimina</strong> a visualização da senha (expirado).
-A senha <strong>não deve ser armazenada</strong> após sua expiração
-- **Exemplo1**: 
-    Senha foi gerada para 2 visualizações e 2 dias de prazo. 
-    Cliente clicou na url 3 vezes seguidas no primeiro dia.
-    1º acesso: senha disponível e pôde ser visualizada. Contador atualizado para 1 view
-    2º acesso: senha disponível e pôde ser visualizada. Contador atualizado para 2 views=limite definido. Senha deletada
-    3º acesso: senha já deletada da base. Retorna mensagem de senha indispovível
-- **Exemplo2**: 
-    Senha foi gerada para 2 visualizações e 2 dias de prazo. 
-    Cliente só clicou na url depois de 4 dias que a mesma foi gerada.
-    1º acesso: senha já deletada da base após o prazo de 2 dias. Retorna mensagem de senha indispovível
-- **Exemplo3**: 
-    Senha foi gerada para 2 visualizações e 2 dias de prazo. 
-    Cliente clicou na url 2 vezes: uma assim que recebeu a mesma e a segunda depois de 5 dias.
-    1º acesso: senha disponível e pôde ser visualizada. Contador atualizado para 1 view
-    2º acesso: senha já deletada da base após o prazo de 2 dias. Retorna mensagem de senha indispovível
-
-## Design
-
-1 - <strong>Monte um desenho</strong> com a arquitetura desse sistema, considerando todos os <strong>componentes e tecnologias</strong> necessárias para o seu correto funcionamento. Considere essa topologia utilizando, obrigatoriamente, provedores de nuvens públicas trabalhando com o <strong>conceito de serverless</strong>. Escolha a nuvem que tiver mais conforto em trabalhar (AWS, GCP, Azure, etc). Para o backend recomendamos o uso dos serviços:
-- AWS: Lambda, API Gateway, DynamoDB, entre outros que não precisem de servidor (dessa forma, desaconselhamos o uso de EC2, EKS, RDS, etc)
-- GCP: Cloud Functions, Cloud Endpoints, Cloud Firestore, entre outros que não precisem de servidor (dessa forma, desaconselhamos o uso de Compute Engine, GKE, Cloud SQL, etc)
-- Azure: Functions, API Management, CosmosDB, entre outros que não precisem de servidor (dessa forma, desaconselhamos o uso de Virtual Machine, AKS, SQL Database, etc)
- 
-2 - Explique como atender cada uma das 4 funções elencadas acima (requisítos) e o racional de sua decisão. 
-- **Exemplo**: A senha aleatória será gerada no front-end por xyz, ou será gerada com uma função no backend por abc.
- 
-3 - <strong>Opcional:</strong> Avalie quais <strong>controles de segurança</strong> são pertinentes para esse sistema, com o objetivo de protegê-lo ao máximo, evitando vazamento de dados (ex: considere o <strong>OWASP Top10</strong>). Questões de auditoria e logging são importantes também. 
-
-4 - Sinta-se livre para adicionar seus comentários de novas melhorias que você julgar desejável. A TOTVS estimula a criatividade e a liberdade de expressão!
- 
-Faça uma sucinta explicação sobre o racional do seu desenho.
-
-Essa documentação pode ser entregue em um arquivo pdf ou como parte da documentação no repositório (Arquivos MarkDown com topologia no Draw.io, etc)
-
-## Implementação
-
-Faça um Fork desse repositório, Crie uma branch com seu nome (ex: application/jose_silva). 
-
-Selecione uma das linguagens abaixo para implementar o backend do projeto:
-- Python
-- C (e suas variações)
-- Golang
-
-Selecione um dos frameworks abaixo para implementar o frontend do projeto:
-- ReactJC
-- AngularJS
-
-Envie um PR nesse repositorio do GitHub contendo <strong>as implementações</strong> do projeto com base na arquitetura descrita que você desenvolveu do sistema (Queremos avaliar sua lógica de programação e estruturação do código). 
-
-Para testar as implementações de seu projeto antes de enviar, recomendamos o uso do free tier das nuvens públicas ou projetos que emulem localmente tais nuvens como o localstack (https://github.com/localstack/localstack).

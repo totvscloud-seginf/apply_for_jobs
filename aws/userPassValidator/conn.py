@@ -49,6 +49,9 @@ class Database:
         
         user_items = user_response['Items']
         
+        
+        _pass = base64.b64encode(password.encode("utf-8")).decode("utf-8"),
+        
         for item in user_response['Items']:
             userid = item.get('userid')
             
@@ -131,13 +134,13 @@ class Database:
         
         if self.user_exists(user):
             query = self.user_query(user_id)
-
+            ## Verifica se já existe um password válido
             for pass_check in query:
                 if 'result' in pass_check:
                     return pass_check
                 if pass_check['passtatus'] > 0:
                     pass_check['exists_valid_pass'] = 'True'
-                    return pass_check
+                    return {'result': 'WARNING', 'err_code': 0, 'data': 'Existe um password válido, não será possível salvar um novo, a opção de recuperação será ativada'}
             
             pass_id = self.get_hash_id(password['password'])
             
@@ -155,6 +158,7 @@ class Database:
             }
              
             try:
+                print('chegou aqui na new_password')
                 self.passTable.put_item(Item=userpass_item, ConditionExpression='attribute_not_exists(passid)')
                 return {'result': 'OK', 'err_code': 0, 'data': 'Novo password adicionado'}
             except Exception as e:

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import axios from "axios";
+import useRequest from '../../hooks/request';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // material-ui
 import {
     Box,
@@ -37,10 +39,20 @@ import { Directions, Visibility, VisibilityOff } from '@mui/icons-material';
 
 
 const PassRecover = () => {
+   
+    
+    const { makeRequest } = useRequest();
     const [level, setLevel] = useState();
     const [showFields, setShowFields] = useState(false)
+    const [text, setText] = useState({  type : 1,
+                                        title: '',
+                                        body: '',
+                                        __pass: '',
+                                    })
     const [linkHref, setLinkHref] = useState({  
                                                 id: 0,
+                                                login: '',
+                                                locallink: '',
                                                 response: {},
                                                 link: '' 
                                             })
@@ -49,9 +61,7 @@ const PassRecover = () => {
     const [showPassInput, setshowPassInput] = useState('');
     const [dataRequestType, setDataRequestType] = useState('');
     const [open, setOpen] = useState(false);
-    const [linkRecoverTitle, setlinkRecoverTitle] = useState('')
     const [RespData, setRespData] = useState({})
-    const [linkRecoverText, setlinkRecoverText] = useState('')
     const [autoPass, setAutoPass] = useState({
                                             number: false,
                                             letter: false,
@@ -70,6 +80,7 @@ const PassRecover = () => {
      
     const handleClose = () => {
         setOpen(false);
+        setBkOpen(false);
         
       };
  
@@ -116,6 +127,35 @@ const PassRecover = () => {
         const  requestType = el.target.attributes.datarequest.value
         setDataRequestType(requestType)
     }
+
+    const notify = (resp, check_ = true) => { 
+        let count = 0  
+        toast.error(resp.data, {
+            onClose: () => {
+                count++
+                if (count > 1){
+                    
+                    if(check_){
+                        setShowFields(!showFields)
+                        document.getElementById('pass_recovery_btn').style.display = 'none'
+                    }
+                    if(!check_ && !showFields){
+                        document.getElementById('pass_recovery_btn').style.display = 'inline-flex'
+                    }
+                    if(resp.result === 'WARNING'){
+                        setShowFields(!showFields)
+                        document.getElementById('pass_recovery_btn').style.display = 'inline-flex'
+                    }
+                    handleCloseBk()
+                }                
+            },
+            position: "top-right",
+            autoClose: 3000,
+            closeOnClick: true,                                                            
+        });
+    
+    }
+
     useEffect(() => {
         changePassword('');
        
@@ -124,23 +164,10 @@ const PassRecover = () => {
 
     const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
     
-    async function request(params) {
-        handleOpenBk()
-        return await axios.request(params)
-        .then((response) => {
-            handleCloseBk()
-            return response.data
-        })
-        .catch((error) => {
-          alert('Erro no request '+error);
-          throw error;
-        });
-        
-    }
     
-
     return (
         <Box sx={{ minHeight: '100vh' }}>
+            <ToastContainer />
             <Grid
                 container
                 direction="column"
@@ -164,6 +191,9 @@ const PassRecover = () => {
                             <Formik
                                 initialValues={{
                                     login: '',
+                                    senha: '',
+                                    passlifetime: 0,
+                                    passlimitview: 0,
                                             password: {
                                                 password: '',
                                                 auto: '',
@@ -180,57 +210,98 @@ const PassRecover = () => {
                                 }}
                                 validationSchema={Yup.object().shape({
                                     login: Yup.string().email('O email deve ser válido').max(255).required('Tem que digitar um email'),
+                                    passlifetime : Yup.number().required('É necessário informar um tempo de vida'),
+                                    passlimitview : Yup.number().required('É necessário informar um limite de visualizações')
                                 })}
                                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                                     try {
+                                        handleOpenBk()
                                         
-                                        let _url
-                                        let config = {
-                                            method: 'POST',
-                                            maxBodyLength: Infinity,
-                                            url: ``,
-                                            headers: { 
-                                              'Acess-Control-Allow-Origin' : '*',
-                                              'Content-Type': 'application/json', 
-                                              'X-Amz-Content-Sha256': 'beaead3198f7da1e70d03ab969765e0821b24fc913697e929e726aeaebf0eba3', 
-                                              'X-Amz-Date': '20230419T163422Z', 
-                                              'Authorization': 'AWS4-HMAC-SHA256 Credential=AKIAROLDIRS6GS7JQGWW/20230419/sa-east-1/execute-api/aws4_request, SignedHeaders=content-length;content-type;host;x-amz-content-sha256;x-amz-date, Signature=d1210305c60e96e19cb692fd5f09d5d1ccbb0ddf14eaa4a8181d4c71da52a2cc'
-                                            },
-                                            data : values
-                                          };
-                                          
                                         if (dataRequestType === "do_user_get_link") {
                                             values.password.auto = 'false'
-                                            _url = "https://z2jytnr0a7.execute-api.sa-east-1.amazonaws.com/default/userPassValidator/do_user_get_link";
-                                            config.url = _url
-                                            request(config).then((data) => {
-                                                
-                                                if ('result' in data.resp){
-                                                    const result = data.resp['result']
+                                            values.password.password = values.senha
+                                            const { passlifetime, passlimitview, senha, ...rest } = values
+                                            
+                                            let req_param = {         
+                                                url: 'https://z2jytnr0a7.execute-api.sa-east-1.amazonaws.com/default/userPassValidator/do_user_get_link',
+                                                data : rest
+                                            };
+                                            
+                                            let _urllink = window.location.href
+                                            _urllink = _urllink.split('/passrecover')[0]
+                                            
+                                            const response = await makeRequest(req_param)
+                                            
+                                            if ('resp' in response) {
+                                                const resp = response['resp'];
+                                                if ('result' in resp){
+                                                    const result = resp['result']
                                                     if(result !== 'OK'){
-                                                        setlinkRecoverTitle('Recuperação da senha falhou!')
-                                                        setlinkRecoverText(data.resp.data)
-                                                        setOpen(true)
-                                                        setShowFields(!showFields) 
+                                                        notify(resp)
                                                         return
                                                     }
                                                 }
-                                                console.log(data.resp.currentlink)
-                                                const link_gen = 'https://z2jytnr0a7.execute-api.sa-east-1.amazonaws.com/default/userPassValidator/'+data.resp.currentlink
-                                                setlinkRecoverTitle('Recuperaçao da senha')
-                                                setlinkRecoverText('Para visualizar a senha clique aqui')
+                                                
+                                                const link_gen = 'https://z2jytnr0a7.execute-api.sa-east-1.amazonaws.com/default/userPassValidator/'+resp.currentlink
+                                                setText({
+                                                    type: 0,
+                                                    title: 'Recuperaçao da senha',
+                                                    body: 'Para visualizar a senha clique aqui',
+                                                    locallink: _urllink+'/passview/'+resp.currentlink+'&login='+values.login+'&link='+window.btoa(unescape(encodeURIComponent(link_gen))),
+                                                    __pass: resp.auto_password ?? '' 
+                                                })
 
                                                 setLinkHref({
                                                         id: 1,
                                                         login: values.login,
-                                                        response: data.resp,
+                                                        response: resp,
+                                                        userlink: '/passview/'+resp.currentlink+'&login='+values.login+'&link='+window.btoa(unescape(encodeURIComponent(link_gen))),
                                                         link: link_gen
                                                     })
                                                 setOpen(true)                                               
-                                            });
+                                            };
                                             
-                                        } else {
-                                            _url = "https://my-api/update-user";
+                                        }else if(dataRequestType === 'do_user_set_new_pass') {
+                                          
+                                            values.password.auto = 'false'
+                                            if (autoPass.number || autoPass.espChar || autoPass.letter || autoPass.passlength){
+                                                values.password.auto = 'true'
+                                                values.password.params.numbers = autoPass.number
+                                                values.password.params.espChar = autoPass.espChar
+                                                values.password.params.letter = autoPass.letter
+                                                values.password.params.passlen = autoPass.passlength
+                                            }
+                                            values.password.password = values.senha
+                                            const { passlifetime, passlimitview, senha, ...rest } = values
+                                        
+                                            rest.password.passlifetime = values.passlifetime
+                                            rest.password.passlimitview = values.passlimitview
+                                            
+                                            let req_param = {         
+                                                url: 'https://z2jytnr0a7.execute-api.sa-east-1.amazonaws.com/default/userPassValidator/do_user_set_new_pass',
+                                                data : rest
+                                            };
+                                            
+                                            const response = await makeRequest(req_param)
+                                            
+                                            if ('resp' in response) {
+                                                const resp = response['resp'];
+                                                
+                                                if ('result' in resp) {
+                                                    const result = resp['result'];
+                                                    notify(resp, false)
+                                                    setText({
+                                                        title: result,
+                                                        body: resp.data,
+                                                        __pass: resp.auto_password ?? '' 
+                                                    })
+                                                    
+                                                    
+                                                }
+                                        
+                                            
+                                                handleCloseBk()
+                                            }  
                                         }
    
                                          
@@ -263,10 +334,17 @@ const PassRecover = () => {
                                                             boxShadow: 24,
                                                             p: 4}}>
                                                     <Typography id="modal-modal-title" variant="h6" component="h2">
-                                                        {linkRecoverTitle}
+                                                        {text.title}
                                                     </Typography>
                                                     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                                                       <RouterLink  to={{pathname : "/passview"}} state={{linkHref}} variant='link_recover' underline='hover'>{linkRecoverText}</RouterLink>
+                                                       { text.type === 0 ? <RouterLink  to={{pathname : "/passview/"}} state={{linkHref}}  underline='hover'>{text.body}</RouterLink> : text.body }
+                                                    </Typography>
+                                                    <Typography id="modal-modal-description1" sx={{ mt: 2}}>
+                                                        <Typography id="modal-modal-description1" sx={{ mt: 2}}>Você pode usar o link: </Typography>
+                                                       { text.type === 0 ? <RouterLink style={{fontSize: '12px', overflowWrap: 'anywhere'}}  to={{ pathname: linkHref.userlink}} underline='hover'>{text.locallink}</RouterLink> : text.body }
+                                                    </Typography>
+                                                    <Typography id="modal-modal-description2" sx={{ mt: 2 }}>
+                                                        {text.__pass}
                                                     </Typography>
                                                 </Box>
                                             </Modal>                                              
@@ -282,7 +360,7 @@ const PassRecover = () => {
                                                         name="login"
                                                         onBlur={handleBlur}
                                                         onChange={handleChange}
-                                                        placeholder="demo@company.com"
+                                                        placeholder="seu@email"
                                                         inputProps={{}}
                                                     />
                                                     {touched.email && errors.email && (
@@ -305,6 +383,7 @@ const PassRecover = () => {
                                                             size="large"
                                                             type="submit"
                                                             variant="contained"
+                                                            id='pass_recovery_btn'
                                                             color="primary"
                                                             onClick={handleType}
                                                             datarequest = 'do_user_get_link'
@@ -320,6 +399,7 @@ const PassRecover = () => {
                                                     <FormControlLabel
                                                         labelPlacement="start"
                                                         control={<Checkbox
+                                                                name='auto'
                                                                 onChange={handleCheck}
                                                                 {...label}
                                                                 sx={{ '& .MuiSvgIcon-root': { fontSize: 28 } }}/>}
@@ -386,11 +466,11 @@ const PassRecover = () => {
                                                         <OutlinedInput
                                                             disabled={autoPassword}
                                                             fullWidth
-                                                            error={Boolean(touched.password && errors.password)}
+                                                            error={Boolean(touched.senha && errors.senha)}
                                                             id="password-signup"
                                                             type={showPassword ? 'text' : 'password'}
-                                                            value={values.password}
-                                                            name="password"
+                                                            value={values.senha}
+                                                            name="senha"
                                                             onBlur={handleBlur}
                                                             onChange={(e) => {
                                                                 handleChange(e);
@@ -412,9 +492,9 @@ const PassRecover = () => {
                                                             placeholder="******"
                                                             inputProps={{}}
                                                         />
-                                                        {touched.password && errors.password && (
+                                                        {touched.senha && errors.senha && (
                                                             <FormHelperText error id="helper-text-password-signup">
-                                                                {errors.password}
+                                                                {errors.senha}
                                                             </FormHelperText>
                                                         )}
                                                     </Stack>
@@ -444,8 +524,8 @@ const PassRecover = () => {
                                                         <InputLabel htmlFor="email-signup">Definir tempo de vida</InputLabel>
                                                         <OutlinedInput
                                                             
-                                                            error={Boolean(touched.lifetime && errors.lifetime)}
-                                                            id="pass-lifetime"
+                                                            error={Boolean(touched.passlifetime && errors.passlifetime)}
+                                                            id="passlifetime"
                                                             type="number"
                                                             value={values.lifetime}
                                                             name="passlifetime"
@@ -454,9 +534,9 @@ const PassRecover = () => {
                                                             placeholder="Valores em horas"
                                                             inputProps={{}}
                                                         />
-                                                        {touched.lifetime && errors.lifetime && (
+                                                        {touched.passlifetime && errors.passlifetime && (
                                                             <FormHelperText error id="helper-text-email-signup">
-                                                                {errors.lifetime}
+                                                                {errors.passlifetime}
                                                             </FormHelperText>
                                                         )}
                                                     </Stack>
@@ -466,19 +546,19 @@ const PassRecover = () => {
                                                         <InputLabel htmlFor="email-signup">Máximo de visualizações</InputLabel>
                                                         <OutlinedInput
                                                             
-                                                            error={Boolean(touched.maxview && errors.maxview)}
-                                                            id="passlink-maxview"
+                                                            error={Boolean(touched.passlimitview && errors.passlimitview)}
+                                                            id="passlimitview"
                                                             type="number"
-                                                            value={values.maxview}
-                                                            name="maxview"
+                                                            value={values.passlimitview}
+                                                            name="passlimitview"
                                                             onBlur={handleBlur}
                                                             onChange={handleChange}
                                                             placeholder="Link poderá ser aberto n vezes"
                                                             inputProps={{}}
                                                         />
-                                                        {touched.maxview && errors.maxview && (
+                                                        {touched.passlimitview && errors.passlimitview && (
                                                             <FormHelperText error id="helper-text-email-signup">
-                                                                {errors.maxview}
+                                                                {errors.passlimitview}
                                                             </FormHelperText>
                                                         )}
                                                     </Stack>
@@ -493,7 +573,8 @@ const PassRecover = () => {
                                                             type="submit"
                                                             variant="contained"
                                                             color="primary"
-                                                            request-type="do_user_set_new_pass"
+                                                            onClick={handleType}
+                                                            datarequest="do_user_set_new_pass"
                                                         >
                                                             {btnLabel}
                                                         </Button>

@@ -35,13 +35,15 @@ import { AutoAwesome, Visibility, VisibilityOff } from '@mui/icons-material';
 
 const Register = () => {
     const navigate = useNavigate()
+    
     const [showPassword, setShowPassword] = useState(false);
     const [bkopen, setBkOpen] = useState(false);
     const [text, setText] = useState({
         title: '',
         body: ''
     })
-    const { data, loading, error, makeRequest } = useRequest();
+    
+    const { makeRequest } = useRequest();
     const [showPassInput, setshowPassInput] = useState('');
     const [open, setOpen] = useState(false);
     const [autoPass, setAutoPass] = useState({
@@ -75,16 +77,14 @@ const Register = () => {
     };
 
     const handleCheckBox = (el) => {
-        
         if(el.target.id === 'passlength'){
             setAutoPass({...autoPass, [ el.target.id ]: el.target.value })
         }
         else{
             setAutoPass({...autoPass, [ el.target.id ]: el.target.checked })
-        }
-          
+        }          
     }
-
+    
     const handleCheck = () =>{
         
         if(showPassInput === 'none'){
@@ -107,19 +107,27 @@ const Register = () => {
                 <Grid container 
                     direction="row" 
                     justifyContent="space-around"
-                    spacing={5} 
-                >
-                    <Grid item xs={8} lg={8} 
+                     
+                  
+                >   
+                    <Grid container xs={8} lg={5} spacing={4}  
                             sx={{
                                 boxShadow: 'rgba(0, 0, 0, 0.15) 0px 2px 8px'
                             }}
                         >
+                        <Grid item lg={12} xs={12}>
+                            <Typography id="register-tittle" sx={{ mt: 2 }}>
+                                REGISTRO 
+                            </Typography>
+                        </Grid>
                         <Grid item xs={11} lg={11} 
                              >
                             <Formik
                                initialValues={{
                                 login: '',
                                 senha: '',
+                                passlifetime: 0,
+                                passlimitview: 0,
                                         password: {
                                             password: '',
                                             auto: '',
@@ -136,12 +144,12 @@ const Register = () => {
                                 }}
                                 validationSchema={Yup.object().shape({
                                     login: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-                                    
+                                    passlifetime : Yup.number().required('É necessário informar um tempo de vida'),
+                                    passlimitview : Yup.number().required('É necessário informar um limite de visualizações')
                                 })}
                                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                                     try {
                                         
-                                      
                                         handleOpenBk()
                                         
                                         values.password.auto = 'false'
@@ -158,7 +166,7 @@ const Register = () => {
 
                                         rest.password.passlifetime = values.passlifetime
                                         rest.password.passlimitview = values.passlimitview
-                                        console.log(rest)
+                                        
                                         let req_param = {         
                                             url: 'https://z2jytnr0a7.execute-api.sa-east-1.amazonaws.com/default/userPassValidator/do_save_new_user',
                                             data : rest
@@ -195,6 +203,7 @@ const Register = () => {
                                 {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
                                     <form noValidate onSubmit={handleSubmit}>
                                         <Grid container spacing={3}>
+                                            
                                             <Modal open={open}
                                                 onClose={handleClose}
                                                 aria-labelledby="child-modal-title"
@@ -216,7 +225,7 @@ const Register = () => {
                                                     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
                                                         {text.body}
                                                     </Typography>
-                                                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                                                    <Typography id="modal-modal-description2" sx={{ mt: 2 }}>
                                                         {text.__pass}
                                                     </Typography>
                                                 </Box>
@@ -227,17 +236,17 @@ const Register = () => {
                                                     <OutlinedInput
                                                         id="email-login"
                                                         type="email"
-                                                        value={values.email}
+                                                        value={values.login}
                                                         name="login"
                                                         onBlur={handleBlur}
                                                         onChange={handleChange}
                                                         placeholder="Enter email address"
                                                         fullWidth
-                                                        error={Boolean(touched.email && errors.email)}
+                                                        error={Boolean(touched.login && errors.login)}
                                                     />
-                                                    {touched.email && errors.email && (
+                                                    {touched.login && errors.login && (
                                                         <FormHelperText error id="standard-weight-helper-text-email-login">
-                                                            {errors.email}
+                                                            {errors.login}
                                                         </FormHelperText>
                                                     )}
                                                 </Stack>
@@ -290,8 +299,6 @@ const Register = () => {
                                                         labelPlacement="start"
                                                         
                                                         control={<Checkbox
-                                                                
-                                                                
                                                                 name='auto'
                                                                 onChange={handleCheck}
                                                                 {...label}
@@ -304,11 +311,10 @@ const Register = () => {
                                                     sx={{flexWrap: 'Wrap', alignContent: 'space-between', justifyContent: 'space-between'}} id='grupo2'>
                                                     <Grid item xs={6} lg={6}>
                                                         <Stack> 
-                                                            <InputLabel htmlFor="email-signup">Definir tempo de vida</InputLabel>
-                                                            <OutlinedInput
-                                                                
-                                                                error={Boolean(touched.lifetime && errors.lifetime)}
-                                                                id="pass-lifetime"
+                                                            <InputLabel htmlFor="passlifetime">Definir tempo de vida</InputLabel>
+                                                            <OutlinedInput                                                                
+                                                                error={Boolean(touched.passlifetime && errors.passlifetime)}
+                                                                id="passlifetime"
                                                                 type="number"
                                                                 value={values.lifetime}
                                                                 name="passlifetime"
@@ -317,20 +323,20 @@ const Register = () => {
                                                                 placeholder="Valores em horas"
                                                                 inputProps={{}}
                                                             />
-                                                            {touched.lifetime && errors.lifetime && (
+                                                            {touched.passlifetime && errors.passlifetime && (
                                                                 <FormHelperText error id="helper-text-email-signup">
-                                                                    {errors.lifetime}
+                                                                    {errors.passlifetime}
                                                                 </FormHelperText>
                                                             )}
                                                         </Stack>
                                                     </Grid>
                                                     <Grid item xs={6} lg={6}>
                                                         <Stack sx={{ minWidth: 0 }}>
-                                                            <InputLabel htmlFor="email-signup">Máximo de visualizações</InputLabel>
+                                                            <InputLabel htmlFor="passlimitview">Máximo de visualizações</InputLabel>
                                                             <OutlinedInput
                                                                 
-                                                                error={Boolean(touched.maxview && errors.maxview)}
-                                                                id="passlink-maxview"
+                                                                error={Boolean(touched.passlimitview && errors.passlimitview)}
+                                                                id="passlimitview"
                                                                 type="number"
                                                                 value={values.maxview}
                                                                 name="passlimitview"
@@ -339,9 +345,9 @@ const Register = () => {
                                                                 placeholder="Link poderá ser aberto n vezes"
                                                                 inputProps={{}}
                                                             />
-                                                            {touched.maxview && errors.maxview && (
+                                                            {touched.passlimitview && errors.passlimitview && (
                                                                 <FormHelperText error id="helper-text-email-signup">
-                                                                    {errors.maxview}
+                                                                    {errors.passlimitview}
                                                                 </FormHelperText>
                                                             )}
                                                         </Stack>

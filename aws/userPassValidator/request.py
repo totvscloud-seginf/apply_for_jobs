@@ -36,13 +36,23 @@ def lambda_handler(event, context):
         else:
             return {
                 'statusCode': 400,
-                'body': 'Url Invállida'
+                 'headers': {
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+                },
+                'body': 'Url Inválida'
             }
         
 def user_login(event, context):
     response = usuario.do_user_login(context)
     return {
         'statusCode': 200,
+         'headers': {
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+        },
         'body': json.dumps({'resp' : response})
     }
 
@@ -50,6 +60,11 @@ def new_user(event, context):
     response = usuario.do_save_new_user(context)
     return {
         'statusCode': 200,
+         'headers': {
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+        },
         'body': json.dumps({"resp" : response})
     }
     
@@ -57,6 +72,12 @@ def get_link(event, context):
     response = usuario.do_user_get_link(context)
     return {
         'statusCode': 200,
+         'headers': {
+            
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+        },
         'body':  json.dumps({"resp" : response})
     }
 
@@ -64,6 +85,11 @@ def use_link(event, context):
     response = usuario.do_user_use_link(context)
     return {
         'statusCode': 200,
+         'headers': {
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+        },
         'body':  json.dumps({"resp" : response})
     }
 
@@ -71,5 +97,10 @@ def set_new_pass(event, context):
     response = usuario.do_user_add_newpass(context)
     return {
         'statusCode': 200,
+         'headers': {
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+        },
         'body':  json.dumps({"resp" : response})
     }

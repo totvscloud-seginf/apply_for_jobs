@@ -1,13 +1,17 @@
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-
+import { useState } from 'react';
+import { Link as RouterLink, Navigate } from 'react-router-dom';
+import useRequest from '../../hooks/request';
+import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // material-ui
 import {
     Box,
     Button,
-    Checkbox,
+    CircularProgress,
     Divider,
-    FormControlLabel,
+    Backdrop,
     FormHelperText,
     Grid,
     Link,
@@ -16,6 +20,7 @@ import {
     InputLabel,
     OutlinedInput,
     Stack,
+    Modal,
     Typography
 } from '@mui/material';
 
@@ -29,11 +34,17 @@ import AnimateButton from '../../Components/animations/AnimatedButton';
 // assets
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
-// ============================|| FIREBASE - LOGIN ||============================ //
-
 const Login = () => {
-    const [checked, setChecked] = React.useState(false);
-
+    const { makeRequest } = useRequest();
+    const { navigate } = useNavigate()
+    const [alertType, setAlertType] = useState('');
+     
+    const [bkopen, setBkOpen] = useState(false);
+    const [text, setText] = useState({
+        title: '',
+        body: ''
+    })
+    const [open, setOpen] = useState(false);
     const [showPassword, setShowPassword] = React.useState(false);
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword);
@@ -43,8 +54,25 @@ const Login = () => {
         event.preventDefault();
     };
 
+    const handleCloseBk = () => {
+        setBkOpen(false);
+      };
+
+    const handleOpenBk = () => {
+        setBkOpen(true);
+      };
+
+    const handleClose = () => {
+        setOpen(!open);
+        if(text.title === 'OK'){
+            navigate('/')
+        }        
+    };
+ 
+
     return (
         <Box sx={{ minHeight: '100vh' }}>
+            <ToastContainer />
             <Grid
                 container
                 direction="column"
@@ -58,28 +86,95 @@ const Login = () => {
                     justifyContent="space-around"
                 >
                     
-                    <Grid container xs={8} lg={4} spacing={4} 
+                    <Grid container xs={8} lg={5} spacing={4} 
                             sx={{
                                 boxShadow: 'rgba(0, 0, 0, 0.15) 0px 2px 8px'
                             }}
-                        >
-                            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                                                        LOGIN 
-                            </Typography>
+                        >   <Grid item lg={12} xs={12}>
+                                <Typography id="login-tittle" sx={{ mt: 2 }}>
+                                    LOGIN 
+                                </Typography>
+                            </Grid>
+                            
                         <Grid item xs={11} lg={11} 
                              >
                             <Formik
                                 initialValues={{
-                                    email: 'info@codedthemes.com',
-                                    password: '123456',
-                                    submit: null
-                                }}
+                                    login: '',
+                                    senha: '',
+                                            password: {
+                                                password: '',
+                                                auto: '',
+                                                passlimitview: '',
+                                                passlifetime: '',
+                                                currentlink: '',
+                                                params: {
+                                                    passlen: '',
+                                                    numbers: '',
+                                                    letter: '',
+                                                    espChar: ''
+                                                }
+                                            }
+                                    }}
                                 validationSchema={Yup.object().shape({
-                                    email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-                                    password: Yup.string().max(255).required('Password is required')
+                                    login: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+                                    senha: Yup.string().max(255).required('Password is required')
                                 })}
                                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                                     try {
+                                        handleOpenBk()
+                                        
+                                       
+                                        values.password.password = values.senha
+                                        const { passlifetime, passlimitview, senha, ...rest } = values
+                                        
+                                        console.log(rest)
+                                        let req_param = {         
+                                            url: 'https://z2jytnr0a7.execute-api.sa-east-1.amazonaws.com/default/userPassValidator/do_user_login',
+                                            data : rest
+                                        };
+                                        const response = await makeRequest(req_param)
+                                        
+                                        if ('resp' in response) {
+                                            const resp = response['resp'];
+                                            
+                                            if ('result' in resp) {
+                                                const result = resp['result'];
+                                                setText({
+                                                    title: result,
+                                                    body: resp.data,                                                    
+                                                })
+                                               
+                                               if(result === 'OK') {
+                                                    toast.success('Logado com sucesso!', {
+                                                        position: "top-right",
+                                                        autoClose: 5000,
+                                                        hideProgressBar: false,
+                                                        closeOnClick: true,
+                                                        pauseOnHover: false,
+                                                        draggable: true,
+                                                        progress: undefined,
+                                                        theme: "light",
+                                                    });
+                                               }else {
+                                                toast.error(resp.data, {
+                                                    position: "top-right",
+                                                    autoClose: 5000,
+                                                    hideProgressBar: false,
+                                                    closeOnClick: true,
+                                                    pauseOnHover: false,
+                                                    draggable: true,
+                                                    progress: undefined,
+                                                    theme: "light",
+                                                });
+
+                                               }
+                                                
+                                            }
+                                           
+                                          
+                                            handleCloseBk()
+                                        }
                                         setStatus({ success: false });
                                         setSubmitting(false);
                                     } catch (err) {
@@ -98,17 +193,17 @@ const Login = () => {
                                                     <OutlinedInput
                                                         id="email-login"
                                                         type="email"
-                                                        value={values.email}
-                                                        name="email"
+                                                        value={values.login}
+                                                        name="login"
                                                         onBlur={handleBlur}
                                                         onChange={handleChange}
                                                         placeholder="Enter email address"
                                                         fullWidth
-                                                        error={Boolean(touched.email && errors.email)}
+                                                        error={Boolean(touched.login && errors.login)}
                                                     />
-                                                    {touched.email && errors.email && (
+                                                    {touched.login && errors.login && (
                                                         <FormHelperText error id="standard-weight-helper-text-email-login">
-                                                            {errors.email}
+                                                            {errors.login}
                                                         </FormHelperText>
                                                     )}
                                                 </Stack>
@@ -118,11 +213,11 @@ const Login = () => {
                                                     <InputLabel htmlFor="password-login">Password</InputLabel>
                                                     <OutlinedInput
                                                         fullWidth
-                                                        error={Boolean(touched.password && errors.password)}
+                                                        error={Boolean(touched.senha && errors.senha)}
                                                         id="-password-login"
                                                         type={showPassword ? 'text' : 'password'}
-                                                        value={values.password}
-                                                        name="password"
+                                                        value={values.senha}
+                                                        name="senha"
                                                         onBlur={handleBlur}
                                                         onChange={handleChange}
                                                         endAdornment={
@@ -140,9 +235,9 @@ const Login = () => {
                                                         }
                                                         placeholder="Enter password"
                                                     />
-                                                    {touched.password && errors.password && (
-                                                        <FormHelperText error id="standard-weight-helper-text-password-login">
-                                                            {errors.password}
+                                                    {touched.senha && errors.senha && (
+                                                        <FormHelperText error id="standard-weight-helper-text-senha-login">
+                                                            {errors.senha}
                                                         </FormHelperText>
                                                     )}
                                                 </Stack>
@@ -192,6 +287,13 @@ const Login = () => {
                     </Grid>
                 </Grid>
             </Grid>
+            <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={bkopen}
+                onClick={handleCloseBk}
+                >
+                <CircularProgress color="inherit" />
+            </Backdrop>
         </Box>
     );
 };
