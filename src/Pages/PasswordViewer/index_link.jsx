@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link as RouterLink  } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import useRequest from '../../hooks/request';
 // material-ui
 import {
