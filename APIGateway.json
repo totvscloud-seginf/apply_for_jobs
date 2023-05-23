@@ -1,0 +1,71 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "password-delivery",
+    "version": "2023-05-23 01:10:16UTC"
+  },
+  "servers": [
+    {
+      "url": "https://8cqu63ix0k.execute-api.us-east-1.amazonaws.com/{basePath}",
+      "variables": {
+        "basePath": {
+          "default": ""
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/{token}": {
+      "get": {
+        "responses": {
+          "default": {
+            "description": "Default response for GET /{token}"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "payloadFormatVersion": "2.0",
+          "type": "aws_proxy",
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:345482337547:function:getPasswordEntry/invocations",
+          "connectionType": "INTERNET",
+          "timeoutInMillis": 30000
+        }
+      },
+      "parameters": [
+        {
+          "name": "token",
+          "in": "path",
+          "description": "Generated path parameter for token",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/": {
+      "post": {
+        "responses": {
+          "default": {
+            "description": "Default response for POST /"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "payloadFormatVersion": "2.0",
+          "type": "aws_proxy",
+          "httpMethod": "POST",
+          "uri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:345482337547:function:PutPasswordEntry/invocations",
+          "connectionType": "INTERNET"
+        }
+      }
+    }
+  },
+  "x-amazon-apigateway-cors": {
+    "allowMethods": [
+      "*"
+    ],
+    "maxAge": 0,
+    "allowCredentials": false
+  },
+  "x-amazon-apigateway-importexport-version": "1.0"
+}
