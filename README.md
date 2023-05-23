@@ -34,35 +34,92 @@ A senha <strong>não deve ser armazenada</strong> após sua expiração
 
 ## Design
 
-1 - <strong>Monte um desenho</strong> com a arquitetura desse sistema, considerando todos os <strong>componentes e tecnologias</strong> necessárias para o seu correto funcionamento. Considere essa topologia utilizando, obrigatoriamente, provedores de nuvens públicas trabalhando com o <strong>conceito de serverless</strong>. Escolha a nuvem que tiver mais conforto em trabalhar (AWS, GCP, Azure, etc). Para o backend recomendamos o uso dos serviços:
-- AWS: Lambda, API Gateway, DynamoDB, entre outros que não precisem de servidor (dessa forma, desaconselhamos o uso de EC2, EKS, RDS, etc)
-- GCP: Cloud Functions, Cloud Endpoints, Cloud Firestore, entre outros que não precisem de servidor (dessa forma, desaconselhamos o uso de Compute Engine, GKE, Cloud SQL, etc)
-- Azure: Functions, API Management, CosmosDB, entre outros que não precisem de servidor (dessa forma, desaconselhamos o uso de Virtual Machine, AKS, SQL Database, etc)
- 
-2 - Explique como atender cada uma das 4 funções elencadas acima (requisítos) e o racional de sua decisão. 
-- **Exemplo**: A senha aleatória será gerada no front-end por xyz, ou será gerada com uma função no backend por abc.
- 
-3 - <strong>Opcional:</strong> Avalie quais <strong>controles de segurança</strong> são pertinentes para esse sistema, com o objetivo de protegê-lo ao máximo, evitando vazamento de dados (ex: considere o <strong>OWASP Top10</strong>). Questões de auditoria e logging são importantes também. 
+![](SystemDiagram.png)
+- Lambda: Duas funções lambda foram criadas para implementar o backend.  
+Ambas funções lambda precisarão de permissões para acessar o DynamoDB. (Essas permissões estão exemplificadas no arquivo `dynamoDBPermissions.json`).  
+    As funções são:
+  - `putPassword.py`: Função lambda que recebe ou gera uma senha, além dos parâmetros limites, e persiste ela na tabela `PasswordTable` do DynamoDB. Retorna um token para visualização da senha. Espera que o payload da requisição seja do formato:  
+    ```json
+    {
+        "password": "SENHASENHASENHA",
+        "view_limit": 3,
+        "time_limit": "2h15m30s",
+        "days_limit": 2
+    }
+    ```  
+    ou  
+    ```json
+    {
+        "password_chars": "abcdefghijklmnopqrstuvwxyz1234567890!@$#*_-=+^/(){}[].,",
+        "password_length": 20,
+        "generate_password": true,
+        "view_limit": 3,
+        "time_limit": "2h15m30s",
+        "days_limit": 2
+    }
+    ```  
+    ou até: 
+    ```json
+    {
+        "generate_password": true,
+        "view_limit": 3,
+        "time_limit": "2h15m30s",
+        "days_limit": 2
+    }
+    ```
+      
+    O retorno será do formato:
+    ```json
+    {
+        "token": "token-uuid-aleatorio"
+    }
+    ```  
+  - `getPassword.py`: Funcção Lambda que recebe um token através do path da requisição, consulta a tabela `PasswordTable`, e se for encontrado retorna um json com a senha e outros parametros como payload. O contador da entrada é decrescido, e se chegar a 0 a entrada de senha é apagada. A resposta será do formato:
+    ```json
+    {
+        "token": "dc2b5969-a7de-44bf-8006-348bec93901f",
+        "password": "o0wM,/0~i<0S!^M!@4p+",
+        "view_limit": 1,
+        "time_limit": 1684983862
+    }
 
-4 - Sinta-se livre para adicionar seus comentários de novas melhorias que você julgar desejável. A TOTVS estimula a criatividade e a liberdade de expressão!
- 
-Faça uma sucinta explicação sobre o racional do seu desenho.
+- API Gateway:
+    Temos apenas duas rotas:
+    - `POST /`:
+        Configurada para acessar a função lambda `putPassword`, com o corpo da requisição sendo enviado para a função.
+    - `GET /{token}`:
+        Configurada para acessar a função lambda `getPassword`. A função consegue capturar esse token através do path.
+    O Arquivo `APIGateway.json` contém as configurações exportadas de uma API já configurada para engatilhar as funções lambda.
 
-Essa documentação pode ser entregue em um arquivo pdf ou como parte da documentação no repositório (Arquivos MarkDown com topologia no Draw.io, etc)
+- DynamoDB:
+    Temos apenas uma tabela: `PasswordTable`, que será escrita e lida pelas funções lambda. Os ítens na tabela seguem este formato:  
+    ```json
+    {
+        "id": {
+            "S": "b4666f68-6bf5-4133-b8cf-f129b8cf3ec2"
+        },
+        "password": {
+            "S": "SENHASENHASENHA"
+        },
+        "time_limit": {
+            "N": "1684983665"
+        },
+        "view_limit": {
+            "N": "3"
+        }
+    }
+    ```
+    Deve ser configurado um TTL para os ítens da tabela, no campo `time_limit`. Assim, a deleção de senhas expiradas fica a cargo do DynamoDB.
 
-## Implementação
+2 - Requisitos atendidos:
+  1. Escolher Senha / Gerar Senha: A senha será informada na criação da entrada, ou será informado um conjunto de caracteres para uso na senha, e um tamanho de senha. Na função lambda `putPassword.py`, esses parametros são usados para gerar uma senha. Dessa forma, ela pode não ser gerada no frontend, o que seria desejável pois essa senha não estaria sujeita a um ataque MITM.
+  2. Prazo e limite de visualizações: Na criação de uma entrada de senha, ambos devem ser informados no payload da requisição, e serão persistidos junto com a senha.
+  3. URL para visualização: como resposta a requisição de PUT no `/` com um payload válido, A API retorna um token, gerado aleatoriamente, que deve ser usado como path de um GET para `/{token}`, que aí retornará um payload com a senha.
+  4. Apagar senha após limites excedidos: 
+     1. Limite de visualizações: Na função lambda `getPassword.py`, após o contador de visualizações chegar a zero, o item é deletado da tabela de senhas.
+     2. Limite de tempo: Na tabela de senhas, o campo `time_limit` é configurado para ser usado como TTL. Dessa forma, quando esse tempo passa, o próprio DynamoDB se encarrega de apagar essas entradas.
 
-Faça um Fork desse repositório, Crie uma branch com seu nome (ex: application/jose_silva). 
+## Implementação:
 
-Selecione uma das linguagens abaixo para implementar o backend do projeto:
-- Python
-- C (e suas variações)
-- Golang
-
-Selecione um dos frameworks abaixo para implementar o frontend do projeto:
-- ReactJC
-- AngularJS
-
-Envie um PR nesse repositorio do GitHub contendo <strong>as implementações</strong> do projeto com base na arquitetura descrita que você desenvolveu do sistema (Queremos avaliar sua lógica de programação e estruturação do código). 
-
-Para testar as implementações de seu projeto antes de enviar, recomendamos o uso do free tier das nuvens públicas ou projetos que emulem localmente tais nuvens como o localstack (https://github.com/localstack/localstack).
+    Ver Arquivos `putPassword.py` e `getPassword.py`.
+    
