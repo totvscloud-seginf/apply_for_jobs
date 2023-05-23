@@ -34,6 +34,8 @@ A senha <strong>não deve ser armazenada</strong> após sua expiração
 
 ## Design
 
+### Backend
+
 ![](SystemDiagram.png)
 - Lambda: Duas funções lambda foram criadas para implementar o backend.  
 Ambas funções lambda precisarão de permissões para acessar o DynamoDB. (Essas permissões estão exemplificadas no arquivo `dynamoDBPermissions.json`).  
@@ -111,7 +113,17 @@ Ambas funções lambda precisarão de permissões para acessar o DynamoDB. (Essa
     ```
     Deve ser configurado um TTL para os ítens da tabela, no campo `time_limit`. Assim, a deleção de senhas expiradas fica a cargo do DynamoDB.
 
-2 - Requisitos atendidos:
+- Amplify:
+    Seria utilizado para servir o frontend do serviço.
+- S3:
+    Seria utilizado para armazenar os arquivos estáticos servidos no Amplify.
+
+### Frontend
+
+Não foi implementado um Frontend.
+Para o Frontend seria utilizado ReactJS, com um form simples, para validação dos dados a ser enviados para o Backend. Para a recuperação da senha, uma pequena página de visualização seria retornada, com a senha sendo requisitada depois de um botão ser acionado, para prevenir acessos acidentais que diminuiriam o contador e invalidariam a senha.
+
+## Requisitos atendidos:
   1. Escolher Senha / Gerar Senha: A senha será informada na criação da entrada, ou será informado um conjunto de caracteres para uso na senha, e um tamanho de senha. Na função lambda `putPassword.py`, esses parametros são usados para gerar uma senha. Dessa forma, ela pode não ser gerada no frontend, o que seria desejável pois essa senha não estaria sujeita a um ataque MITM.
   2. Prazo e limite de visualizações: Na criação de uma entrada de senha, ambos devem ser informados no payload da requisição, e serão persistidos junto com a senha.
   3. URL para visualização: como resposta a requisição de PUT no `/` com um payload válido, A API retorna um token, gerado aleatoriamente, que deve ser usado como path de um GET para `/{token}`, que aí retornará um payload com a senha.
@@ -121,5 +133,5 @@ Ambas funções lambda precisarão de permissões para acessar o DynamoDB. (Essa
 
 ## Implementação:
 
-    Ver Arquivos `putPassword.py` e `getPassword.py`.
-    
+Ver Arquivos `putPassword.py` e `getPassword.py`.
+
